@@ -11,10 +11,10 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-[rgba(18,10,11,1)] flex w-full flex-col items-center pt-[306px] pb-[83px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
+    <footer className="bg-primary flex w-full flex-col items-center pt-80 pb-20 px-5 md:px-20 max-md:pt-24">
       <div className="w-[1140px] max-w-full">
         <div className="bg-[rgba(255,255,255,0.002)] shadow-[0px_1px_2px_rgba(0,0,0,0.4)] flex gap-[40px_85px] overflow-hidden font-normal flex-wrap pt-2 pb-24 max-md:max-w-full">
-          <div className="text-[rgba(248,244,241,1)] text-[17px] leading-[31px] grow shrink w-[323px] mt-10">
+          <div className="text-primary-foreground text-base leading-relaxed grow shrink w-80 mt-10">
             Streamline your workflow, manage projects, <br />
             and empower your team.
           </div>
