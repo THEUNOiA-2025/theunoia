@@ -24,40 +24,40 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="bg-white flex w-full flex-col items-center pt-[74px] px-20 max-md:max-w-full max-md:px-5">
-      <div className="flex w-[1200px] max-w-full flex-col items-center">
-        <h2 className="text-[rgba(18,10,11,1)] text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:text-[40px]">
+    <section className="bg-background flex w-full flex-col items-center py-20 px-5 md:px-20">
+      <div className="flex w-full max-w-7xl flex-col items-center">
+        <h2 className="text-foreground text-5xl font-bold tracking-tight text-center max-md:text-4xl">
           How It Works
         </h2>
-        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] text-center mt-[39px] max-md:max-w-full">
+        <p className="text-muted-foreground text-base font-normal text-center mt-10 max-w-3xl">
           Getting things done is simple. Just post what you need, receive bids from skilled individuals, and pick the one that fits your budget and timeline.
         </p>
-        <div className="self-stretch mt-[65px] max-md:max-w-full max-md:mt-10">
-          <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
+        <div className="w-full mt-16 max-md:mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {steps.map((step, index) => (
-              <article key={index} className="w-[33%] max-md:w-full max-md:ml-0">
-                <div className="bg-[rgba(248,244,241,1)] flex grow flex-col overflow-hidden w-full px-[26px] py-[46px] rounded-[25px] max-md:mt-6 max-md:px-5">
+              <article key={index} className="flex flex-col">
+                <div className="bg-secondary flex flex-col w-full px-7 py-12 rounded-3xl h-full">
                   <img
                     src={step.icon}
                     alt={`${step.title} icon`}
-                    className="aspect-[1] object-contain w-[60px] rounded-[14px]"
+                    className="w-[60px] h-[60px] rounded-2xl object-contain"
                   />
-                  <h3 className="text-[rgba(18,10,11,1)] text-[19px] font-bold leading-loose mt-[25px]">
+                  <h3 className="text-foreground text-lg font-bold mt-6">
                     {step.title}
                   </h3>
-                  <p className="text-[rgba(69,65,64,1)] text-[15px] font-normal leading-[27px] mt-[29px]">
+                  <p className="text-muted-foreground text-[15px] font-normal leading-relaxed mt-7">
                     {step.description}
                   </p>
                   <img
                     src={step.image}
                     alt={`${step.title} illustration`}
-                    className="aspect-[1.54] object-contain w-full self-stretch mt-[51px] rounded-xl max-md:mt-10"
+                    className="w-full object-contain mt-12 rounded-xl max-md:mt-10"
                   />
                   {step.bottomImage && (
                     <img
                       src={step.bottomImage}
                       alt="Additional illustration"
-                      className="aspect-[6.58] object-contain w-[290px] self-center max-w-full mt-3.5"
+                      className="w-[290px] self-center max-w-full mt-4 object-contain"
                     />
                   )}
                 </div>
