@@ -41,8 +41,8 @@ const Login = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-background rounded-3xl p-8 relative overflow-hidden">
-            <div className="relative h-64 w-full">
+          <div className="bg-transparent rounded-3xl p-4 relative overflow-hidden">
+            <div className="relative h-96 w-full flex items-center justify-center">
               {slides.map((slide, index) => (
                 <img
                   key={index}
@@ -51,6 +51,7 @@ const Login = () => {
                   className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${
                     index === currentSlide ? 'opacity-100' : 'opacity-0'
                   }`}
+                  style={{ mixBlendMode: 'multiply' }}
                 />
               ))}
             </div>
