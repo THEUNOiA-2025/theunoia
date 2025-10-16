@@ -20,12 +20,16 @@ const Header = () => {
           </div>
         </nav>
         <div className="flex items-stretch gap-4 font-bold text-center">
-          <button className="border border-foreground flex items-center justify-center text-foreground px-12 py-4 rounded-full hover:bg-secondary transition-colors">
-            LogIn
-          </button>
-          <button className="bg-primary flex items-center justify-center text-primary-foreground px-12 py-4 rounded-full hover:opacity-90 transition-opacity">
-            SignUp
-          </button>
+          <a href="/login">
+            <button className="border border-foreground flex items-center justify-center text-foreground px-12 py-4 rounded-full hover:bg-secondary transition-colors">
+              LogIn
+            </button>
+          </a>
+          <a href="/signup">
+            <button className="bg-primary flex items-center justify-center text-primary-foreground px-12 py-4 rounded-full hover:opacity-90 transition-opacity">
+              SignUp
+            </button>
+          </a>
         </div>
       </div>
     </header>
