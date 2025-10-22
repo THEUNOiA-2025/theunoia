@@ -1,217 +1,274 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { CircleArrowRight, Mail, Lock, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
+import slide1 from '@/assets/auth-slide-1.png';
+import slide2 from '@/assets/auth-slide-2.png';
+import slide3 from '@/assets/auth-slide-3.png';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const signupSchema = z.object({
-  email: z.string().email('Invalid email address').max(255),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  firstName: z.string().trim().min(1, 'First name is required').max(100),
-  lastName: z.string().trim().min(1, 'Last name is required').max(100),
-  userType: z.enum(['student', 'non-student']),
+  firstName: z.string().trim().min(2, 'First name must be at least 2 characters').max(50),
+  lastName: z.string().trim().min(2, 'Last name must be at least 2 characters').max(50),
+  email: z.string().trim().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  userType: z.enum(['student', 'non-student'], {
+    required_error: 'Please select a user type',
+  }),
 });
 
 const Signup = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [userType, setUserType] = useState<'student' | 'non-student'>('student');
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(false);
-  
-  const { signUp, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+  const slides = [slide1, slide2, slide3];
 
-  const handleSignup = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/');
+      }
+    });
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setLoading(true);
+
     try {
-      signupSchema.parse({ email, password, firstName, lastName, userType });
-    } catch (error) {
+      // Validate form data
+      signupSchema.parse({
+        firstName,
+        lastName,
+        email,
+        password,
+        userType,
+      });
+
+      // Sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Signup failed');
+
+      // Create minimal user profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: authData.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          user_type: userType,
+          profile_completed: false,
+        });
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: 'Account created successfully!',
+        description: 'Please complete your profile to continue.',
+      });
+
+      // Redirect to profile completion
+      navigate('/profile-completion');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      
       if (error instanceof z.ZodError) {
         toast({
           title: 'Validation Error',
           description: error.errors[0].message,
           variant: 'destructive',
         });
-        return;
-      }
-    }
-
-    setLoading(true);
-    const { error } = await signUp(email, password, { firstName, lastName, userType });
-    setLoading(false);
-
-    if (error) {
-      if (error.message.includes('already registered')) {
-        toast({
-          title: 'Account Exists',
-          description: 'An account with this email already exists. Please login instead.',
-          variant: 'destructive',
-        });
       } else {
         toast({
           title: 'Signup Failed',
-          description: error.message,
+          description: error.message || 'An error occurred during signup',
           variant: 'destructive',
         });
       }
-    } else {
-      toast({
-        title: 'Success',
-        description: 'Account created successfully! Redirecting to dashboard...',
-      });
-      navigate('/dashboard');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg border-border/40">
-        <CardHeader className="space-y-3">
-          <div className="flex items-center gap-3 justify-center">
-            <div className="size-12 bg-primary rounded-2xl flex items-center justify-center shadow-sm">
-              <CircleArrowRight className="w-7 h-7 text-primary-foreground" />
+    <div className="flex min-h-screen">
+      {/* Left Side - Branding & Images */}
+      <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between p-12">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://api.builder.io/api/v1/image/assets/TEMP/92d972effd43063f68165dc5639029d3b68f7576?placeholderIfAbsent=true"
+            alt="THEUNOiA Logo"
+            className="w-[30px] h-[24px]"
+          />
+          <span className="text-xl font-bold text-foreground">THEUNOiA</span>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-transparent rounded-3xl p-4 relative overflow-hidden">
+            <div className="relative h-[550px] w-full flex items-center justify-center">
+              {slides.map((slide, index) => (
+                <img
+                  key={index}
+                  src={slide}
+                  alt={`Slide ${index + 1}`}
+                  className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${
+                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{ mixBlendMode: 'multiply' }}
+                />
+              ))}
             </div>
-            <h2 className="text-foreground text-2xl font-bold tracking-tight">THEUNOiA</h2>
           </div>
-          <CardTitle className="text-2xl text-center">
-            Create Account
-          </CardTitle>
-          <CardDescription className="text-center">
-            Fill in your details to get started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-sm font-medium">
-                  First Name
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          
+          <blockquote className="space-y-2">
+            <p className="text-muted-foreground text-base leading-relaxed">
+              "THEUNOiA has transformed how my team collaborates! The intuitive task board and real-time updates keep everyone on the same page."
+            </p>
+            <footer className="text-sm text-foreground font-medium">- Sofia Davis, Product Manager</footer>
+          </blockquote>
+        </div>
+      </div>
+
+      {/* Right Side - Signup Form */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex justify-end p-6">
+          <Link to="/login">
+            <Button variant="ghost" className="text-base font-medium">
+              Login
+            </Button>
+          </Link>
+        </div>
+
+        <div className="flex-1 flex items-start justify-center px-6 pt-8 pb-12">
+          <div className="w-full max-w-[450px] space-y-8">
+            <div className="space-y-3 text-center">
+              <h1 className="text-3xl font-bold text-foreground">Create an account</h1>
+              <p className="text-muted-foreground text-base">
+                Get started with just a few details
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
                     type="text"
                     placeholder="John"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="pl-10 rounded-lg"
                     required
+                    className="h-11"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-sm font-medium">
-                  Last Name
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
                     type="text"
                     placeholder="Doe"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="pl-10 rounded-lg"
                     required
+                    className="h-11"
                   />
                 </div>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">I am a</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant={userType === 'student' ? 'default' : 'outline'}
-                  className="rounded-lg"
-                  onClick={() => setUserType('student')}
-                >
-                  Student
-                </Button>
-                <Button
-                  type="button"
-                  variant={userType === 'non-student' ? 'default' : 'outline'}
-                  className="rounded-lg"
-                  onClick={() => setUserType('non-student')}
-                >
-                  Freelancer
-                </Button>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 rounded-lg"
                   required
+                  className="h-11"
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="At least 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 rounded-lg"
                   required
+                  className="h-11"
                 />
               </div>
-            </div>
 
-            <Button 
-              type="submit" 
-              className="w-full rounded-lg bg-foreground text-background hover:bg-foreground/90 font-medium"
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Sign Up'}
-            </Button>
-          </form>
+              <div className="space-y-3">
+                <Label>I am a</Label>
+                <RadioGroup value={userType} onValueChange={(value) => setUserType(value as 'student' | 'non-student')}>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <RadioGroupItem value="student" id="student" />
+                    <Label htmlFor="student" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Student</div>
+                      <div className="text-sm text-muted-foreground">Post projects and access freelancing features after verification</div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <RadioGroupItem value="non-student" id="non-student" />
+                    <Label htmlFor="non-student" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Non-Student</div>
+                      <div className="text-sm text-muted-foreground">Post projects and hire freelancers only</div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
 
-          <div className="mt-6 text-center text-sm">
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="text-primary hover:underline font-medium"
-            >
-              Already have an account? Login
-            </button>
+              <Button type="submit" className="w-full h-11 text-base font-bold rounded-full" disabled={loading}>
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+            </form>
+
+            <p className="text-center text-sm text-muted-foreground">
+              By clicking continue, you agree to our{' '}
+              <Link to="/terms" className="underline underline-offset-4 hover:text-foreground">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="underline underline-offset-4 hover:text-foreground">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

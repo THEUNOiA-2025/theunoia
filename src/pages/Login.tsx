@@ -1,146 +1,174 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { CircleArrowRight, Mail, Lock } from 'lucide-react';
-import { z } from 'zod';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address').max(255),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+import { supabase } from '@/integrations/supabase/client';
+import slide1 from '@/assets/auth-slide-1.png';
+import slide2 from '@/assets/auth-slide-2.png';
+import slide3 from '@/assets/auth-slide-3.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(false);
-  
-  const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const slides = [slide1, slide2, slide3];
+
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      loginSchema.parse({ email, password });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: 'Validation Error',
-          description: error.errors[0].message,
-          variant: 'destructive',
-        });
-        return;
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/');
       }
-    }
+    });
+  }, [navigate]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    const { error } = await signIn(email, password);
-    setLoading(false);
 
-    if (error) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully logged in.',
+      });
+
+      navigate('/');
+    } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: 'Login Failed',
-        description: error.message === 'Invalid login credentials' 
-          ? 'Invalid email or password. Please try again.' 
-          : error.message,
+        description: error.message || 'Invalid email or password',
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Success',
-        description: 'Logged in successfully!',
-      });
-      navigate('/dashboard');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg border-border/40">
-        <CardHeader className="space-y-3">
-          <div className="flex items-center gap-3 justify-center">
-            <div className="size-12 bg-primary rounded-2xl flex items-center justify-center shadow-sm">
-              <CircleArrowRight className="w-7 h-7 text-primary-foreground" />
+    <div className="flex lg:min-h-screen">
+      {/* Left Side - Branding & Images */}
+      <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between lg:p-8 xl:p-12">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://api.builder.io/api/v1/image/assets/TEMP/92d972effd43063f68165dc5639029d3b68f7576?placeholderIfAbsent=true"
+            alt="THEUNOiA Logo"
+            className="w-[30px] h-[24px]"
+          />
+          <span className="text-xl font-bold text-foreground">THEUNOiA</span>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-transparent rounded-3xl p-4 relative overflow-hidden">
+            <div className="relative h-64 xl:h-[550px] w-full flex items-center justify-center">
+              {slides.map((slide, index) => (
+                <img
+                  key={index}
+                  src={slide}
+                  alt={`Slide ${index + 1}`}
+                  className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${
+                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{ mixBlendMode: 'multiply' }}
+                />
+              ))}
             </div>
-            <h2 className="text-foreground text-2xl font-bold tracking-tight">THEUNOiA</h2>
           </div>
-          <CardTitle className="text-2xl text-center">
-            Welcome Back
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          
+          <blockquote className="space-y-2">
+            <p className="text-muted-foreground text-base leading-relaxed">
+              "Getting things done is simple. Just post what you need, receive bids from skilled individuals, and pick the one that fits your budget."
+            </p>
+            <footer className="text-sm text-foreground font-medium">- James Patterson, Tech Lead</footer>
+          </blockquote>
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex justify-end p-6">
+          <Link to="/signup">
+            <Button variant="ghost" className="text-base font-medium">
+              Sign Up
+            </Button>
+          </Link>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-6 py-8">
+          <div className="w-full max-w-[400px] space-y-5">
+            <div className="space-y-3 text-center">
+              <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
+              <p className="text-muted-foreground text-base">
+                Enter your email below to login to your account
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 rounded-lg"
                   required
+                  className="h-12"
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 rounded-lg"
                   required
+                  className="h-12"
                 />
               </div>
-            </div>
 
-            <Button 
-              type="submit" 
-              className="w-full rounded-lg bg-foreground text-background hover:bg-foreground/90 font-medium"
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Login'}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full h-12 text-base font-bold rounded-full" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign In with Email'}
+              </Button>
+            </form>
 
-          <div className="mt-6 text-center text-sm">
-            <button
-              type="button"
-              onClick={() => navigate('/signup')}
-              className="text-primary hover:underline font-medium"
-            >
-              Don't have an account? Sign up
-            </button>
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{' '}
+              <Link to="/signup" className="underline underline-offset-4 hover:text-foreground font-medium">
+                Sign up
+              </Link>
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
