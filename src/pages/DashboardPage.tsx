@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Search, Bell, Plus, Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +8,32 @@ import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 
 const DashboardPage = () => {
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Sidebar */}
@@ -75,7 +103,7 @@ const DashboardPage = () => {
               <h1 className="text-foreground text-sm font-semibold">Jane Doe</h1>
               <p className="text-muted-foreground text-xs">janedoe@email.com</p>
             </div>
-            <button className="ml-auto text-muted-foreground hover:text-foreground transition-colors p-1">
+            <button className="ml-auto text-muted-foreground hover:text-foreground transition-colors p-1" onClick={handleSignOut}>
               <LogOut className="w-[18px] h-[18px]" />
             </button>
           </div>
