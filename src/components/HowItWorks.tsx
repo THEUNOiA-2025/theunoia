@@ -26,10 +26,13 @@ const HowItWorks = () => {
   return (
     <section className="bg-background flex w-full flex-col items-center py-20 px-5 md:px-20">
       <div className="flex w-full max-w-7xl flex-col items-center">
+        <div className="bg-yellow flex items-center text-[13px] text-yellow-foreground font-medium w-fit px-6 py-2 rounded-full mb-6">
+          Why choose us
+        </div>
         <h2 className="text-foreground text-5xl font-bold tracking-tight text-center max-md:text-4xl">
           How It Works
         </h2>
-        <p className="text-muted-foreground text-base font-normal text-center mt-10 max-w-3xl">
+        <p className="text-muted-foreground text-base font-normal text-center mt-6 max-w-3xl">
           Getting things done is simple. Just post what you need, receive bids from skilled individuals, and pick the one that fits your budget and timeline.
         </p>
         <div className="w-full mt-16 max-md:mt-10">
