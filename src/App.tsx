@@ -7,8 +7,6 @@ import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ProfileCompletion from "./pages/ProfileCompletion";
-import StudentVerification from "./pages/StudentVerification";
 import NotFound from "./pages/NotFound";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -25,8 +23,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/profile-completion" element={<ProfileCompletion />} />
-          <Route path="/student-verification" element={<StudentVerification />} />
           <Route 
             path="/dashboard" 
             element={
