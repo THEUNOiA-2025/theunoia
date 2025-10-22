@@ -20,38 +20,38 @@ const DashboardPage = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col">
             <a
               href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-light text-primary font-semibold transition-all"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary-light text-primary font-semibold transition-all"
             >
               <Grid3X3 className="w-[18px] h-[18px]" />
               <p className="text-[0.9375rem]">Dashboard</p>
             </a>
             <a
               href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
               <Briefcase className="w-[18px] h-[18px]" />
               <p className="text-[0.9375rem]">Projects</p>
             </a>
             <a
               href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
               <Gavel className="w-[18px] h-[18px]" />
               <p className="text-[0.9375rem]">Bids</p>
             </a>
             <a
               href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
               <Mail className="w-[18px] h-[18px]" />
               <p className="text-[0.9375rem]">Messages</p>
             </a>
             <a
               href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
               <User className="w-[18px] h-[18px]" />
               <p className="text-[0.9375rem]">Profile</p>
