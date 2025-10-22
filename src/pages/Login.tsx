@@ -51,11 +51,21 @@ const Login = () => {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
-      toast({
-        title: 'Login Failed',
-        description: error.message || 'Invalid email or password',
-        variant: 'destructive',
-      });
+      
+      // Check for email verification error
+      if (error.message?.includes('Email not confirmed')) {
+        toast({
+          title: 'Email Not Verified',
+          description: 'Please check your email and verify your account before logging in.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Login Failed',
+          description: error.message || 'Invalid email or password',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

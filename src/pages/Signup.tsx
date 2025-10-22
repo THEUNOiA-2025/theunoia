@@ -74,11 +74,8 @@ const Signup = () => {
 
       toast({
         title: 'Account created successfully!',
-        description: 'Please complete your profile to continue.',
+        description: 'Please check your email to verify your account.',
       });
-
-      // Redirect to profile completion
-      navigate('/profile-completion');
     } catch (error: any) {
       console.error('Signup error:', error);
       
