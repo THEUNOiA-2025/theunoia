@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import slide1 from '@/assets/auth-slide-1.png';
 import slide2 from '@/assets/auth-slide-2.png';
 import slide3 from '@/assets/auth-slide-3.png';
@@ -11,6 +13,9 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const slides = [slide1, slide2, slide3];
 
@@ -21,10 +26,43 @@ const Login = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/');
+      }
+    });
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login:', { email, password });
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully logged in.',
+      });
+
+      navigate('/');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast({
+        title: 'Login Failed',
+        description: error.message || 'Invalid email or password',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,8 +155,8 @@ const Login = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full h-12 text-base font-bold rounded-full">
-                Sign In with Email
+              <Button type="submit" className="w-full h-12 text-base font-bold rounded-full" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign In with Email'}
               </Button>
             </form>
 
