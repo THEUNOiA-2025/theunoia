@@ -27,18 +27,18 @@ const FAQ = () => {
   ];
 
   return (
-    <section className="bg-white flex w-full flex-col items-center pt-[130px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
+    <section className="bg-background flex w-full flex-col items-center pt-[130px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="z-10 mb-[-193px] w-[1200px] max-w-full max-md:mb-2.5">
         <div className="flex w-full flex-col items-stretch px-10 max-md:max-w-full max-md:px-5">
           <div className="max-md:max-w-full">
             <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
               <div className="w-6/12 max-md:w-full max-md:ml-0">
                 <div className="flex flex-col items-stretch mt-3.5 max-md:max-w-full max-md:mt-10">
-                  <h2 className="text-[rgba(18,10,11,1)] text-[51px] font-bold leading-[67px] tracking-[-1.5px] max-md:text-[40px] max-md:leading-[58px]">
+                  <h2 className="text-foreground text-[51px] font-bold leading-[67px] tracking-[-1.5px] max-md:text-[40px] max-md:leading-[58px]">
                     Frequently <br />
                     asked questions
                   </h2>
-                  <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] mt-[30px] max-md:max-w-full">
+                  <p className="text-muted-foreground text-[17px] font-normal leading-[31px] mt-[30px] max-md:max-w-full">
                     For any unanswered questions, reach out to our support team <br />
                     via email. We'll respond as soon as possible to assist you.
                   </p>
@@ -47,15 +47,15 @@ const FAQ = () => {
               <div className="w-6/12 ml-5 max-md:w-full max-md:ml-0">
                 <div className="flex grow flex-col items-stretch text-[17px] max-md:max-w-full max-md:mt-10">
                   {faqs.map((faq, index) => (
-                    <div key={index} className={`${index === 0 ? 'border' : ''} flex flex-col items-stretch ${index === 0 ? 'px-6 py-[31px] rounded-2xl border-[rgba(18,10,11,0.2)] border-solid' : 'ml-6 mt-[17px]'} max-md:max-w-full ${index === 0 ? 'max-md:px-5' : 'max-md:ml-2.5'}`}>
+                    <div key={index} className={`${index === 0 ? 'border' : ''} flex flex-col items-stretch ${index === 0 ? 'px-6 py-[31px] rounded-2xl border-border' : 'ml-6 mt-[17px]'} max-md:max-w-full ${index === 0 ? 'max-md:px-5' : 'max-md:ml-2.5'}`}>
                       <button
                         onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                        className="text-[rgba(18,10,11,1)] font-bold leading-loose text-left hover:text-gray-600 transition-colors"
+                        className="text-foreground font-bold leading-loose text-left hover:text-muted-foreground transition-colors"
                       >
                         {faq.question}
                       </button>
                       {openFaq === index && index === 0 && (
-                        <div className="text-[rgba(69,65,64,1)] font-normal leading-[31px] mt-[27px] max-md:max-w-full">
+                        <div className="text-muted-foreground font-normal leading-[31px] mt-[27px] max-md:max-w-full">
                           {faq.answer}
                         </div>
                       )}
@@ -65,19 +65,19 @@ const FAQ = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[rgba(255,216,111,1)] w-full overflow-hidden mt-28 px-[67px] py-[50px] rounded-[40px] max-md:max-w-full max-md:mt-10 max-md:px-5">
+          <div className="bg-yellow w-full overflow-hidden mt-28 px-[67px] py-[50px] rounded-[40px] max-md:max-w-full max-md:mt-10 max-md:px-5">
             <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
               <div className="w-6/12 max-md:w-full max-md:ml-0">
                 <div className="flex flex-col self-stretch font-bold my-auto max-md:max-w-full max-md:mt-10">
-                  <h2 className="text-[rgba(18,10,11,1)] text-[37px] leading-[52px] tracking-[-1px]">
+                  <h2 className="text-yellow-foreground text-[37px] leading-[52px] tracking-[-1px]">
                     Get You Work Done
                     <br />
                     within days, not weeks!
                   </h2>
-                  <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] self-stretch mt-[26px] max-md:max-w-full">
+                  <p className="text-yellow-foreground text-[17px] font-normal leading-[31px] self-stretch mt-[26px] max-md:max-w-full">
                     THEUNOiA is the ultimate SaaS & startup tool to help you get your work done, As well as skill up and get guaranteed Internships
                   </p>
-                  <button className="bg-[rgba(18,10,11,1)] flex flex-col overflow-hidden items-stretch text-[15px] text-white leading-loose justify-center mt-[38px] px-[30px] py-[18px] rounded-[100px] max-md:px-5 hover:bg-gray-800 transition-colors">
+                  <button className="bg-foreground flex flex-col overflow-hidden items-stretch text-[15px] text-background leading-loose justify-center mt-[38px] px-[30px] py-[18px] rounded-[100px] max-md:px-5 hover:opacity-90 transition-opacity">
                     Get This Template
                   </button>
                 </div>
