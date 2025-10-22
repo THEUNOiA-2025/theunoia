@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import slide1 from '@/assets/auth-slide-1.png';
 import slide2 from '@/assets/auth-slide-2.png';
@@ -31,6 +31,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, user } = useAuth();
 
   const slides = [slide1, slide2, slide3];
 
@@ -43,12 +44,10 @@ const Signup = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/');
-      }
-    });
-  }, [navigate]);
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,30 +64,13 @@ const Signup = () => {
       });
 
       // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
+      const { error } = await signUp(email, password, {
+        firstName,
+        lastName,
+        userType,
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Signup failed');
-
-      // Create minimal user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: authData.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          user_type: userType,
-          profile_completed: false,
-        });
-
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       toast({
         title: 'Account created successfully!',
