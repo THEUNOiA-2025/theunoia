@@ -92,7 +92,7 @@ const DashboardPage = () => {
               <Input
                 type="text"
                 placeholder="Search projects, students, or skills..."
-                className="pl-12 h-12 rounded-2xl border-border/60 text-[0.9375rem] shadow-sm"
+                className="pl-12 h-12 rounded-2xl border-border/60 text-[0.9375rem] shadow-sm bg-white"
               />
             </div>
           </div>
