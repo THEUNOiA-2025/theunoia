@@ -190,7 +190,7 @@ const DashboardPage = () => {
                 <h2 className="text-foreground text-xl font-semibold pb-5">Active Projects</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Project Card 1 */}
-                  <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border-border/40">
+                  <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-1.5">
                         <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
@@ -223,7 +223,7 @@ const DashboardPage = () => {
                   </Card>
 
                   {/* Project Card 2 */}
-                  <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border-border/40">
+                  <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-1.5">
                         <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
@@ -314,7 +314,7 @@ const DashboardPage = () => {
             {/* Recommended Project Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 px-2">
               {/* Project Card 1 */}
-              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border-border/40">
+              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
                 <div className="w-full h-40 bg-gradient-to-br from-primary via-accent-purple to-accent rounded-xl" />
                 <div className="flex flex-col gap-2 flex-grow">
                   <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
@@ -341,7 +341,7 @@ const DashboardPage = () => {
               </Card>
 
               {/* Project Card 2 */}
-              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border-border/40">
+              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
                 <div className="w-full h-40 bg-gradient-to-br from-accent-blue via-accent to-secondary rounded-xl" />
                 <div className="flex flex-col gap-2 flex-grow">
                   <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">SEO Blog Content</p>
@@ -363,7 +363,7 @@ const DashboardPage = () => {
               </Card>
 
               {/* Project Card 3 */}
-              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border-border/40">
+              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
                 <div className="w-full h-40 bg-gradient-to-br from-accent via-accent-blue to-primary rounded-xl" />
                 <div className="flex flex-col gap-2 flex-grow">
                   <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
