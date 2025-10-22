@@ -167,7 +167,7 @@ const Signup = () => {
           </Link>
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="flex-1 flex items-start justify-center px-6 pt-8 pb-12">
           <div className="w-full max-w-[450px] space-y-8">
             <div className="space-y-3 text-center">
               <h1 className="text-3xl font-bold text-foreground">Create an account</h1>
