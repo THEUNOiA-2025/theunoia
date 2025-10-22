@@ -237,14 +237,14 @@ const Signup = () => {
                     <RadioGroupItem value="student" id="student" />
                     <Label htmlFor="student" className="flex-1 cursor-pointer">
                       <div className="font-medium">Student</div>
-                      <div className="text-sm text-muted-foreground">Access freelancing features after verification</div>
+                      <div className="text-sm text-muted-foreground">Post projects and access freelancing features after verification</div>
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
                     <RadioGroupItem value="non-student" id="non-student" />
                     <Label htmlFor="non-student" className="flex-1 cursor-pointer">
                       <div className="font-medium">Non-Student</div>
-                      <div className="text-sm text-muted-foreground">Post projects and hire freelancers</div>
+                      <div className="text-sm text-muted-foreground">Post projects and hire freelancers only</div>
                     </Label>
                   </div>
                 </RadioGroup>
