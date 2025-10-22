@@ -39,7 +39,7 @@ const HowItWorks = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {steps.map((step, index) => (
               <article key={index} className="flex flex-col">
-                <div className="bg-secondary flex flex-col w-full px-7 py-12 rounded-3xl h-full hover-lift">
+                <div className="bg-[#F8F4F1] flex flex-col w-full px-7 py-12 rounded-3xl h-full hover-lift">
                   <img
                     src={step.icon}
                     alt={`${step.title} icon`}
