@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import slide1 from '@/assets/auth-slide-1.png';
 import slide2 from '@/assets/auth-slide-2.png';
 import slide3 from '@/assets/auth-slide-3.png';
@@ -16,6 +16,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, user } = useAuth();
 
   const slides = [slide1, slide2, slide3];
 
@@ -28,22 +29,17 @@ const Login = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/');
-      }
-    });
-  }, [navigate]);
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await signIn(email, password);
 
       if (error) throw error;
 
@@ -52,7 +48,7 @@ const Login = () => {
         description: 'You have successfully logged in.',
       });
 
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
