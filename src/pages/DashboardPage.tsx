@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Search, Bell, Plus, Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight } from 'lucide-react';
@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 const DashboardPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -17,18 +20,45 @@ const DashboardPage = () => {
     }
   }, [user, loading, navigate]);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error) throw error;
+          setProfile(data);
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+        } finally {
+          setProfileLoading(false);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
 
-  if (loading) {
+  if (loading || profileLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   if (!user) {
     return null;
   }
+
+  const displayName = profile ? `${profile.first_name} ${profile.last_name}` : 'User';
+  const displayEmail = user.email || 'No email';
+  const firstName = profile?.first_name || 'User';
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -96,8 +126,8 @@ const DashboardPage = () => {
           <div className="flex items-center gap-3 px-2">
             <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gradient-to-br from-primary to-accent shadow-sm" />
             <div className="flex flex-col">
-              <h1 className="text-foreground text-sm font-semibold">Jane Doe</h1>
-              <p className="text-muted-foreground text-xs">janedoe@email.com</p>
+              <h1 className="text-foreground text-sm font-semibold">{displayName}</h1>
+              <p className="text-muted-foreground text-xs">{displayEmail}</p>
             </div>
             <button 
               onClick={handleSignOut}
@@ -144,7 +174,7 @@ const DashboardPage = () => {
           <div className="flex flex-col gap-6 px-2 pb-8">
             <div className="flex items-center justify-between gap-3">
               <div className="flex flex-col gap-2">
-                <p className="text-foreground text-4xl font-bold tracking-tight">Welcome back, Jane!</p>
+                <p className="text-foreground text-4xl font-bold tracking-tight">Welcome back, {firstName}!</p>
                 <p className="text-muted-foreground text-[0.9375rem] font-normal">
                   Here's what's happening on your dashboard today.
                 </p>
