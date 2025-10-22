@@ -3,7 +3,10 @@ import React from 'react';
 const Features = () => {
   return (
     <section className="bg-background flex w-full flex-col items-center py-20 px-5 md:px-20">
-      <div className="flex w-full max-w-7xl flex-col items-center">
+      <div className="flex w-full max-w-6xl flex-col items-center">
+        <div className="bg-green flex items-center text-[13px] text-green-foreground font-medium w-fit px-6 py-2 rounded-full mb-6">
+          Features
+        </div>
         <h2 className="text-foreground text-5xl font-bold tracking-tight text-center max-md:text-4xl">
           Powerful features to <br />
           boost your work
@@ -14,7 +17,7 @@ const Features = () => {
         <div className="w-full mt-16 max-md:mt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <article className="flex flex-col">
-              <div className="bg-accent flex flex-col text-accent-foreground font-medium w-full p-10 rounded-3xl h-full hover-lift">
+              <div className="bg-[#B8A3FF] flex flex-col text-foreground font-medium w-full p-10 rounded-3xl h-full hover-lift">
                 <div className="bg-background flex items-center text-[13px] text-muted-foreground w-fit px-4 py-2 rounded-2xl">
                   <div>In-app chat and real-time feedback</div>
                 </div>
@@ -32,7 +35,7 @@ const Features = () => {
               </div>
             </article>
             <article className="flex flex-col">
-              <div className="bg-yellow flex flex-col text-yellow-foreground font-medium w-full p-10 rounded-3xl h-full hover-lift">
+              <div className="bg-[#FFD86F] flex flex-col text-foreground font-medium w-full p-10 rounded-3xl h-full hover-lift">
                 <div className="bg-background flex items-center text-[13px] text-muted-foreground w-fit px-4 py-2 rounded-2xl">
                   <div>Task completion percentages for each task</div>
                 </div>
@@ -51,9 +54,9 @@ const Features = () => {
             </article>
           </div>
         </div>
-        <article className="bg-green w-full overflow-hidden mt-5 p-10 rounded-3xl hover-lift">
+        <article className="bg-[#C8F070] w-full overflow-hidden mt-5 p-10 rounded-3xl hover-lift">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="flex flex-col text-green-foreground font-medium my-auto">
+            <div className="flex flex-col text-foreground font-medium my-auto">
               <div className="bg-background flex items-center text-[13px] text-muted-foreground w-fit px-4 py-2 rounded-2xl">
                 <div>Daily, weekly, and monthly views for planning</div>
               </div>
