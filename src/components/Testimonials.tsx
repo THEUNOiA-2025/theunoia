@@ -29,34 +29,34 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="bg-white flex w-full flex-col overflow-hidden items-center pt-[142px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
+    <section className="bg-background flex w-full flex-col overflow-hidden items-center pt-[142px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="flex w-[1200px] max-w-full flex-col items-center">
-        <h2 className="text-[rgba(18,10,11,1)] text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px]">
+        <h2 className="text-foreground text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px]">
           What our users are saying
         </h2>
-        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-loose text-center mt-7 max-md:max-w-full">
+        <p className="text-muted-foreground text-[17px] font-normal leading-loose text-center mt-7 max-md:max-w-full">
           Simplify project planning, streamline collaboration, and boost productivity{" "}
         </p>
-        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] text-center">
+        <p className="text-muted-foreground text-[17px] font-normal leading-[31px] text-center">
           all with THEUNOiA task management solution
         </p>
         <div className="self-stretch mt-[55px] max-md:max-w-full max-md:mt-10">
           <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
             {testimonials.map((testimonial, index) => (
               <article key={index} className="w-[33%] max-md:w-full max-md:ml-0">
-                <div className="border flex w-full flex-col items-stretch px-[35px] py-10 rounded-[20px] border-[rgba(248,244,241,1)] border-solid max-md:mt-6 max-md:px-5 hover-lift">
+                <div className="border flex w-full flex-col items-stretch px-[35px] py-10 rounded-[20px] border-border max-md:mt-6 max-md:px-5 hover-lift">
                   <img
                     src={testimonial.rating}
                     alt="5 star rating"
                     className="aspect-[5.49] object-contain w-44 max-w-full"
                   />
-                  <h3 className="text-[rgba(18,10,11,1)] text-[23px] font-medium leading-[34px] tracking-[-0.5px] mt-[38px]">
+                  <h3 className="text-foreground text-[23px] font-medium leading-[34px] tracking-[-0.5px] mt-[38px]">
                     {testimonial.title.split(' ').map((word, i) => (
                       i < testimonial.title.split(' ').length - 3 ? word + ' ' : 
                       i === testimonial.title.split(' ').length - 3 ? <><br key={i} />{word} </> : word + ' '
                     ))}
                   </h3>
-                  <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] mt-3.5 max-md:mr-[5px]">
+                  <p className="text-muted-foreground text-[17px] font-normal leading-[31px] mt-3.5 max-md:mr-[5px]">
                     {testimonial.content.split(' ').map((word, i) => (
                       i < testimonial.content.split(' ').length - 3 ? word + ' ' : 
                       i === testimonial.content.split(' ').length - 3 ? <><br key={i} />{word} </> : word + ' '
@@ -69,10 +69,10 @@ const Testimonials = () => {
                       className="aspect-[1] object-contain w-14 shrink-0 rounded-[200px]"
                     />
                     <div className="flex flex-col items-stretch my-auto">
-                      <div className="text-[rgba(18,10,11,1)] text-[15px] font-bold leading-loose">
+                      <div className="text-foreground text-[15px] font-bold leading-loose">
                         {testimonial.name}
                       </div>
-                      <div className="text-[rgba(69,65,64,1)] text-[13px] font-medium leading-loose mt-[15px]">
+                      <div className="text-muted-foreground text-[13px] font-medium leading-loose mt-[15px]">
                         {testimonial.role}
                       </div>
                     </div>
