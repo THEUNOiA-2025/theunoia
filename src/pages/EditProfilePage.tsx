@@ -107,7 +107,7 @@ const EditProfilePage = () => {
         onSignOut={() => {}}
       />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 ml-64">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}
