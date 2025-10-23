@@ -243,15 +243,46 @@ const ProfilePage = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto p-8 max-w-4xl">
-        <div className="space-y-6">
-          {/* Personal Information Card */}
+      <div className="container mx-auto p-8 max-w-6xl">
+        {/* Profile Header Section */}
+        <Card className="rounded-2xl border-border/40 mb-6">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-8">
+              {/* Avatar */}
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white">
+                  {profile.firstName?.[0]}{profile.lastName?.[0]}
+                </div>
+              </div>
+
+              {/* Profile Info */}
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-foreground mb-2">
+                  {profile.firstName} {profile.lastName}
+                </h2>
+                <div className="mb-4">
+                  {getStatusBadge()}
+                </div>
+                <p className="text-muted-foreground mb-2">{profile.email}</p>
+                {profile.city && (
+                  <p className="text-sm text-muted-foreground">
+                    📍 {profile.city}{profile.pinCode ? `, ${profile.pinCode}` : ''}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Personal Information */}
           <Card className="rounded-2xl border-border/40">
             <CardHeader>
               <CardTitle className="text-xl">Personal Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label>First Name</Label>
                   <Input value={profile.firstName} disabled className="bg-muted/50" />
@@ -260,14 +291,10 @@ const ProfilePage = () => {
                   <Label>Last Name</Label>
                   <Input value={profile.lastName} disabled className="bg-muted/50" />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={profile.email} disabled className="bg-muted/50" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input value={profile.email} disabled className="bg-muted/50" />
+                </div>
                 <div className="space-y-2">
                   <Label>Gender</Label>
                   <Select value={profile.gender} onValueChange={(value) => setProfile({ ...profile, gender: value })}>
@@ -282,7 +309,6 @@ const ProfilePage = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label>Date of Birth</Label>
                   <Popover>
@@ -310,9 +336,6 @@ const ProfilePage = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>City</Label>
                   <Input
@@ -332,19 +355,16 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              <Button onClick={handleProfileUpdate} disabled={loading} className="w-full md:w-auto">
+              <Button onClick={handleProfileUpdate} disabled={loading} className="w-full">
                 {loading ? "Updating..." : "Update Profile"}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Student Verification Card */}
+          {/* Right Column - Student Verification */}
           <Card className="rounded-2xl border-border/40">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">Student Verification</CardTitle>
-                {getStatusBadge()}
-              </div>
+              <CardTitle className="text-xl">Student Verification</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {verification.status === "approved" && (
@@ -414,7 +434,7 @@ const ProfilePage = () => {
                   <Button
                     onClick={handleVerificationSubmit}
                     disabled={verificationLoading}
-                    className="w-full md:w-auto"
+                    className="w-full"
                   >
                     {verificationLoading ? "Submitting..." : "Submit Verification Request"}
                   </Button>
