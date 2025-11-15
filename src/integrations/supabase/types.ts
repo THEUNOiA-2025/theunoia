@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      bids: {
+        Row: {
+          amount: number
+          created_at: string
+          freelancer_id: string
+          id: string
+          project_id: string
+          proposal: string
+          status: Database["public"]["Enums"]["bid_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          freelancer_id: string
+          id?: string
+          project_id: string
+          proposal: string
+          status?: Database["public"]["Enums"]["bid_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          freelancer_id?: string
+          id?: string
+          project_id?: string
+          proposal?: string
+          status?: Database["public"]["Enums"]["bid_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "user_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       freelancer_access: {
         Row: {
           created_at: string | null
@@ -217,6 +258,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      bid_status: "pending" | "accepted" | "rejected"
       verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -345,6 +387,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      bid_status: ["pending", "accepted", "rejected"],
       verification_status: ["pending", "approved", "rejected"],
     },
   },
