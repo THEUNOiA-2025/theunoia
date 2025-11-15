@@ -65,9 +65,7 @@ export const DashboardLayout = () => {
         profilePictureUrl={profile?.profile_picture_url}
         onSignOut={handleSignOut}
       />
-      <main className="ml-64">
-        <Outlet />
-      </main>
+      <Outlet />
     </div>
   );
 };
