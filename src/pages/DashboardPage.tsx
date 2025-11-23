@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 const DashboardPage = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [latestProjects, setLatestProjects] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -29,7 +30,25 @@ const DashboardPage = () => {
       }
     };
 
+    const fetchLatestProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_projects')
+          .select('*')
+          .eq('project_type', 'work_requirement')
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+        setLatestProjects(data || []);
+      } catch (error) {
+        console.error('Error fetching latest projects:', error);
+      }
+    };
+
     fetchProfile();
+    fetchLatestProjects();
   }, [user]);
 
   const firstName = profile?.first_name || 'User';
@@ -206,83 +225,50 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Recommended Project Cards */}
+            {/* Latest Project Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 px-2">
-              {/* Project Card 1 */}
-              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                <div className="w-full h-40 bg-gradient-to-br from-primary via-accent-purple to-accent rounded-xl" />
-                <div className="flex flex-col gap-2 flex-grow">
-                  <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
-                    Brand Identity for Startup
-                  </p>
-                  <p className="text-muted-foreground text-[0.875rem] font-normal">
-                    A fresh startup in the fintech space is looking for a complete brand identity package.
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-green/60 text-green-foreground">
-                      Graphic Design
-                    </span>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-accent-blue/50 text-accent-blue-foreground">
-                      Illustration
-                    </span>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-accent-purple/50 text-accent-purple-foreground">
-                      Branding
-                    </span>
-                  </div>
+              {latestProjects.length === 0 ? (
+                <div className="col-span-3 text-center py-8">
+                  <p className="text-muted-foreground">No projects available at the moment</p>
                 </div>
-                <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
-                  Place Bid
-                </Button>
-              </Card>
-
-              {/* Project Card 2 */}
-              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                <div className="w-full h-40 bg-gradient-to-br from-accent-blue via-accent to-secondary rounded-xl" />
-                <div className="flex flex-col gap-2 flex-grow">
-                  <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">SEO Blog Content</p>
-                  <p className="text-muted-foreground text-[0.875rem] font-normal">
-                    We need engaging and SEO-friendly blog posts for our established tech blog.
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-secondary/70 text-secondary-foreground">
-                      Content Writing
-                    </span>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary-light/70 text-primary">
-                      SEO
-                    </span>
-                  </div>
-                </div>
-                <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
-                  Place Bid
-                </Button>
-              </Card>
-
-              {/* Project Card 3 */}
-              <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                <div className="w-full h-40 bg-gradient-to-br from-accent via-accent-blue to-primary rounded-xl" />
-                <div className="flex flex-col gap-2 flex-grow">
-                  <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
-                    Mobile App UI/UX Design
-                  </p>
-                  <p className="text-muted-foreground text-[0.875rem] font-normal">
-                    Looking for a talented designer to create an intuitive and beautiful mobile app interface.
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-green/60 text-green-foreground">
-                      UI/UX
-                    </span>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-accent-blue/50 text-accent-blue-foreground">
-                      Mobile App
-                    </span>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-accent-purple/50 text-accent-purple-foreground">
-                      Figma
-                    </span>
-                  </div>
-                </div>
-                <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
-                  Place Bid
-                </Button>
-              </Card>
+              ) : (
+                latestProjects.map((project) => (
+                  <Card key={project.id} className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
+                    {project.image_url ? (
+                      <div className="w-full h-40 rounded-xl overflow-hidden">
+                        <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-40 bg-gradient-to-br from-primary via-accent-purple to-accent rounded-xl" />
+                    )}
+                    <div className="flex flex-col gap-2 flex-grow">
+                      <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
+                        {project.title}
+                      </p>
+                      <p className="text-muted-foreground text-[0.875rem] font-normal line-clamp-2">
+                        {project.description}
+                      </p>
+                      {project.skills_required && project.skills_required.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          {project.skills_required.slice(0, 3).map((skill: string, index: number) => (
+                            <span key={index} className="px-3 py-1.5 text-xs font-medium rounded-full bg-secondary/60 text-secondary-foreground">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {project.budget && (
+                        <p className="text-primary font-semibold text-sm mt-2">
+                          Budget: ${project.budget}
+                        </p>
+                      )}
+                    </div>
+                    <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
+                      Place Bid
+                    </Button>
+                  </Card>
+                ))
+              )}
             </div>
           </section>
         </main>
