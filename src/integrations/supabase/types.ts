@@ -265,37 +265,52 @@ export type Database = {
       }
       user_projects: {
         Row: {
+          budget: number | null
           client_feedback: string | null
           completed_at: string | null
           created_at: string
           description: string
           id: string
           image_url: string | null
+          project_type: string
           rating: number | null
+          skills_required: string[] | null
+          status: string | null
+          timeline: string | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          budget?: number | null
           client_feedback?: string | null
           completed_at?: string | null
           created_at?: string
           description: string
           id?: string
           image_url?: string | null
+          project_type?: string
           rating?: number | null
+          skills_required?: string[] | null
+          status?: string | null
+          timeline?: string | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          budget?: number | null
           client_feedback?: string | null
           completed_at?: string | null
           created_at?: string
           description?: string
           id?: string
           image_url?: string | null
+          project_type?: string
           rating?: number | null
+          skills_required?: string[] | null
+          status?: string | null
+          timeline?: string | null
           title?: string
           updated_at?: string
           user_id?: string

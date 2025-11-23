@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, Clock, CheckCircle2 } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -24,9 +24,26 @@ interface Project {
   client_feedback: string | null;
   completed_at: string | null;
   created_at: string;
+  project_type: 'work_requirement' | 'portfolio_project';
+  budget: number | null;
+  timeline: string | null;
+  skills_required: string[] | null;
+  status: string | null;
 }
 
-const projectSchema = z.object({
+const workRequirementSchema = z.object({
+  title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
+  description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000, "Description must be less than 2000 characters"),
+  budget: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0;
+  }, "Budget must be a positive number"),
+  timeline: z.string().trim().min(3, "Timeline must be at least 3 characters").max(100, "Timeline must be less than 100 characters"),
+  skills_required: z.string().trim().min(1, "At least one skill is required"),
+  image_url: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
+});
+
+const portfolioProjectSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000, "Description must be less than 2000 characters"),
   image_url: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
@@ -36,6 +53,7 @@ const projectSchema = z.object({
     return !isNaN(num) && num >= 0 && num <= 5;
   }, "Rating must be between 0 and 5"),
   client_feedback: z.string().trim().max(500, "Feedback must be less than 500 characters").optional(),
+  completed_at: z.string().optional(),
 });
 
 const ProjectsPage = () => {
@@ -47,7 +65,19 @@ const ProjectsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [formData, setFormData] = useState({
+  const [formType, setFormType] = useState<'work_requirement' | 'portfolio_project'>('work_requirement');
+  const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
+  
+  const [workFormData, setWorkFormData] = useState({
+    title: "",
+    description: "",
+    budget: "",
+    timeline: "",
+    skills_required: "",
+    image_url: "",
+  });
+
+  const [portfolioFormData, setPortfolioFormData] = useState({
     title: "",
     description: "",
     image_url: "",
@@ -58,45 +88,66 @@ const ProjectsPage = () => {
 
   useEffect(() => {
     if (user) {
+      checkVerification();
       fetchAllData();
     }
   }, [user]);
+
+  const checkVerification = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('freelancer_access')
+        .select('has_access')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      setIsVerifiedStudent(data?.has_access || false);
+    } catch (error) {
+      console.error('Error checking verification:', error);
+    }
+  };
 
   const fetchAllData = async () => {
     if (!user?.id) return;
     
     try {
-      // Fetch all open projects (available for bidding) from all users
+      // Fetch all open work requirements
       const { data: allData, error: allError } = await supabase
         .from("user_projects")
         .select("*")
-        .is("completed_at", null)
+        .eq("project_type", "work_requirement")
+        .eq("status", "open")
         .order("created_at", { ascending: false });
 
       if (allError) throw allError;
-      setAllProjects(allData || []);
+      setAllProjects((allData as Project[]) || []);
 
-      // Fetch user's own projects (both open and completed)
+      // Fetch user's own work requirements
       const { data: myData, error: myError } = await supabase
         .from("user_projects")
         .select("*")
         .eq("user_id", user.id)
-        .is("completed_at", null)
+        .eq("project_type", "work_requirement")
         .order("created_at", { ascending: false });
 
       if (myError) throw myError;
-      setMyProjects(myData || []);
+      setMyProjects((myData as Project[]) || []);
 
-      // Fetch user's completed projects
-      const { data: completedData, error: completedError } = await supabase
-        .from("user_projects")
-        .select("*")
-        .eq("user_id", user.id)
-        .not("completed_at", "is", null)
-        .order("completed_at", { ascending: false });
+      // Fetch user's portfolio projects (only if verified student)
+      if (isVerifiedStudent) {
+        const { data: completedData, error: completedError } = await supabase
+          .from("user_projects")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("project_type", "portfolio_project")
+          .order("completed_at", { ascending: false });
 
-      if (completedError) throw completedError;
-      setCompletedProjects(completedData || []);
+        if (completedError) throw completedError;
+        setCompletedProjects((completedData as Project[]) || []);
+      }
     } catch (error) {
       console.error("Error fetching projects:", error);
       toast.error("Failed to load projects");
@@ -105,20 +156,41 @@ const ProjectsPage = () => {
     }
   };
 
-  const handleOpenDialog = (project?: Project) => {
+  const handleOpenDialog = (project?: Project, type: 'work_requirement' | 'portfolio_project' = 'work_requirement') => {
+    setFormType(type);
+    
     if (project) {
       setEditingProject(project);
-      setFormData({
-        title: project.title,
-        description: project.description,
-        image_url: project.image_url || "",
-        rating: project.rating?.toString() || "",
-        client_feedback: project.client_feedback || "",
-        completed_at: project.completed_at || "",
-      });
+      if (project.project_type === 'work_requirement') {
+        setWorkFormData({
+          title: project.title,
+          description: project.description,
+          budget: project.budget?.toString() || "",
+          timeline: project.timeline || "",
+          skills_required: project.skills_required?.join(", ") || "",
+          image_url: project.image_url || "",
+        });
+      } else {
+        setPortfolioFormData({
+          title: project.title,
+          description: project.description,
+          image_url: project.image_url || "",
+          rating: project.rating?.toString() || "",
+          client_feedback: project.client_feedback || "",
+          completed_at: project.completed_at || "",
+        });
+      }
     } else {
       setEditingProject(null);
-      setFormData({
+      setWorkFormData({
+        title: "",
+        description: "",
+        budget: "",
+        timeline: "",
+        skills_required: "",
+        image_url: "",
+      });
+      setPortfolioFormData({
         title: "",
         description: "",
         image_url: "",
@@ -137,40 +209,68 @@ const ProjectsPage = () => {
     }
 
     try {
-      // Validate form data
-      projectSchema.parse({
-        title: formData.title,
-        description: formData.description,
-        image_url: formData.image_url,
-        rating: formData.rating,
-        client_feedback: formData.client_feedback,
-      });
+      if (formType === 'work_requirement') {
+        workRequirementSchema.parse(workFormData);
 
-      const projectData = {
-        user_id: user.id,
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        image_url: formData.image_url.trim() || null,
-        rating: formData.rating ? parseFloat(formData.rating) : null,
-        client_feedback: formData.client_feedback?.trim() || null,
-        completed_at: formData.completed_at || null,
-      };
+        const projectData = {
+          user_id: user.id,
+          title: workFormData.title.trim(),
+          description: workFormData.description.trim(),
+          budget: parseFloat(workFormData.budget),
+          timeline: workFormData.timeline.trim(),
+          skills_required: workFormData.skills_required.split(',').map(s => s.trim()),
+          image_url: workFormData.image_url.trim() || null,
+          project_type: 'work_requirement',
+          status: 'open',
+        };
 
-      if (editingProject) {
-        const { error } = await supabase
-          .from("user_projects")
-          .update(projectData)
-          .eq("id", editingProject.id);
+        if (editingProject) {
+          const { error } = await supabase
+            .from("user_projects")
+            .update(projectData)
+            .eq("id", editingProject.id);
 
-        if (error) throw error;
-        toast.success("Project updated successfully!");
+          if (error) throw error;
+          toast.success("Work requirement updated successfully!");
+        } else {
+          const { error } = await supabase
+            .from("user_projects")
+            .insert(projectData);
+
+          if (error) throw error;
+          toast.success("Work requirement posted successfully!");
+        }
       } else {
-        const { error } = await supabase
-          .from("user_projects")
-          .insert(projectData);
+        portfolioProjectSchema.parse(portfolioFormData);
 
-        if (error) throw error;
-        toast.success("Project posted successfully!");
+        const projectData = {
+          user_id: user.id,
+          title: portfolioFormData.title.trim(),
+          description: portfolioFormData.description.trim(),
+          image_url: portfolioFormData.image_url.trim() || null,
+          rating: portfolioFormData.rating ? parseFloat(portfolioFormData.rating) : null,
+          client_feedback: portfolioFormData.client_feedback?.trim() || null,
+          completed_at: portfolioFormData.completed_at || new Date().toISOString(),
+          project_type: 'portfolio_project',
+          status: 'completed',
+        };
+
+        if (editingProject) {
+          const { error } = await supabase
+            .from("user_projects")
+            .update(projectData)
+            .eq("id", editingProject.id);
+
+          if (error) throw error;
+          toast.success("Portfolio project updated successfully!");
+        } else {
+          const { error } = await supabase
+            .from("user_projects")
+            .insert(projectData);
+
+          if (error) throw error;
+          toast.success("Portfolio project added successfully!");
+        }
       }
 
       setDialogOpen(false);
@@ -207,7 +307,7 @@ const ProjectsPage = () => {
     try {
       const { error } = await supabase
         .from("user_projects")
-        .update({ completed_at: new Date().toISOString() })
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq("id", projectId);
 
       if (error) throw error;
@@ -221,10 +321,100 @@ const ProjectsPage = () => {
 
   const filteredProjects = allProjects.filter((project) =>
     project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
+    project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    project.skills_required?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const renderProjectCard = (project: Project, showActions: boolean = false) => (
+  const renderWorkRequirementCard = (project: Project, showActions: boolean = false) => (
+    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
+      {project.image_url && (
+        <div className="aspect-video w-full overflow-hidden bg-muted">
+          <img
+            src={project.image_url}
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <CardHeader>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <CardTitle className="text-lg mb-1">{project.title}</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Posted {format(new Date(project.created_at), "MMM d, yyyy")}
+            </p>
+          </div>
+          <Badge variant={project.status === 'open' ? 'default' : 'secondary'}>
+            {project.status}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground line-clamp-3">
+          {project.description}
+        </p>
+        <div className="flex items-center gap-4 text-sm">
+          {project.budget && (
+            <div className="flex items-center gap-1">
+              <DollarSign className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold">${project.budget}</span>
+            </div>
+          )}
+          {project.timeline && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">{project.timeline}</span>
+            </div>
+          )}
+        </div>
+        {project.skills_required && project.skills_required.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {project.skills_required.map((skill, index) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                {skill}
+              </Badge>
+            ))}
+          </div>
+        )}
+        {showActions ? (
+          <div className="flex gap-2 pt-2">
+            {project.status === 'open' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => handleMarkComplete(project.id)}
+              >
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Mark Complete
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleOpenDialog(project, 'work_requirement')}
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDelete(project.id)}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
+        ) : (
+          <Button className="w-full mt-2" size="sm">
+            View Details & Bid
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
     <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
       {project.image_url && (
         <div className="aspect-video w-full overflow-hidden bg-muted">
@@ -270,22 +460,11 @@ const ProjectsPage = () => {
         )}
         {showActions && (
           <div className="flex gap-2 pt-2">
-            {!project.completed_at && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => handleMarkComplete(project.id)}
-              >
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Mark Complete
-              </Button>
-            )}
             <Button
               variant="outline"
               size="sm"
-              className={!project.completed_at ? "" : "flex-1"}
-              onClick={() => handleOpenDialog(project)}
+              className="flex-1"
+              onClick={() => handleOpenDialog(project, 'portfolio_project')}
             >
               <Edit className="w-3 h-3 mr-1" />
               Edit
@@ -299,11 +478,6 @@ const ProjectsPage = () => {
             </Button>
           </div>
         )}
-        {!showActions && !project.completed_at && (
-          <Button className="w-full mt-2" size="sm">
-            View Details & Bid
-          </Button>
-        )}
       </CardContent>
     </Card>
   );
@@ -316,108 +490,23 @@ const ProjectsPage = () => {
             <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
             <p className="text-muted-foreground">Browse available projects or manage your own</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Post Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>{editingProject ? "Edit Project" : "Add New Project"}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Project Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="E-commerce Website Redesign"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe your project..."
-                    rows={4}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image_url">Image URL</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rating">Rating (0-5)</Label>
-                    <Input
-                      id="rating"
-                      type="number"
-                      min="0"
-                      max="5"
-                      step="0.1"
-                      value={formData.rating}
-                      onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                      placeholder="4.5"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="completed_at">Completion Date</Label>
-                    <Input
-                      id="completed_at"
-                      type="date"
-                      value={formData.completed_at}
-                      onChange={(e) => setFormData({ ...formData, completed_at: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="client_feedback">Client Feedback</Label>
-                  <Textarea
-                    id="client_feedback"
-                    value={formData.client_feedback}
-                    onChange={(e) => setFormData({ ...formData, client_feedback: e.target.value })}
-                    placeholder="What did the client say about this project?"
-                    rows={3}
-                  />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <Button onClick={handleSave} className="flex-1">
-                    {editingProject ? "Update Project" : "Create Project"}
-                  </Button>
-                  <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         <Tabs defaultValue="browse" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
+          <TabsList className={`grid w-full max-w-md mb-8 ${isVerifiedStudent ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="browse">Browse Projects</TabsTrigger>
             <TabsTrigger value="my-projects">My Projects</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
+            {isVerifiedStudent && <TabsTrigger value="completed">Completed</TabsTrigger>}
           </TabsList>
 
-          {/* Browse All Available Projects */}
+          {/* Browse All Available Work Requirements */}
           <TabsContent value="browse" className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-xl">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search projects..."
+                  placeholder="Search projects by title, description, or skills..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 h-12 rounded-2xl border-border/60"
@@ -439,13 +528,101 @@ const ProjectsPage = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map((project) => renderProjectCard(project, false))}
+                {filteredProjects.map((project) => renderWorkRequirementCard(project, false))}
               </div>
             )}
           </TabsContent>
 
-          {/* User's Posted Projects */}
+          {/* User's Posted Work Requirements */}
           <TabsContent value="my-projects" className="space-y-6">
+            <div className="flex justify-end">
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => handleOpenDialog(undefined, 'work_requirement')} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Post Work Requirement
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingProject ? "Edit Work Requirement" : "Post Work Requirement"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title *</Label>
+                      <Input
+                        id="title"
+                        value={workFormData.title}
+                        onChange={(e) => setWorkFormData({ ...workFormData, title: e.target.value })}
+                        placeholder="E-commerce Website Development"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description *</Label>
+                      <Textarea
+                        id="description"
+                        value={workFormData.description}
+                        onChange={(e) => setWorkFormData({ ...workFormData, description: e.target.value })}
+                        placeholder="Describe your project requirements..."
+                        rows={4}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="budget">Budget ($) *</Label>
+                        <Input
+                          id="budget"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={workFormData.budget}
+                          onChange={(e) => setWorkFormData({ ...workFormData, budget: e.target.value })}
+                          placeholder="500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="timeline">Timeline *</Label>
+                        <Input
+                          id="timeline"
+                          value={workFormData.timeline}
+                          onChange={(e) => setWorkFormData({ ...workFormData, timeline: e.target.value })}
+                          placeholder="2 weeks"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="skills_required">Skills Required (comma-separated) *</Label>
+                      <Input
+                        id="skills_required"
+                        value={workFormData.skills_required}
+                        onChange={(e) => setWorkFormData({ ...workFormData, skills_required: e.target.value })}
+                        placeholder="React, Node.js, MongoDB"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="image_url">Image URL (optional)</Label>
+                      <Input
+                        id="image_url"
+                        value={workFormData.image_url}
+                        onChange={(e) => setWorkFormData({ ...workFormData, image_url: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <Button onClick={handleSave} className="flex-1">
+                        {editingProject ? "Update" : "Post"} Work Requirement
+                      </Button>
+                      <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Loading your projects...</p>
@@ -456,7 +633,7 @@ const ProjectsPage = () => {
                   <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">No Posted Projects</h3>
                   <p className="text-muted-foreground mb-6">Post your first project to find freelancers</p>
-                  <Button onClick={() => handleOpenDialog()} className="gap-2">
+                  <Button onClick={() => handleOpenDialog(undefined, 'work_requirement')} className="gap-2">
                     <Plus className="w-4 h-4" />
                     Post Your First Project
                   </Button>
@@ -464,31 +641,127 @@ const ProjectsPage = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myProjects.map((project) => renderProjectCard(project, true))}
+                {myProjects.map((project) => renderWorkRequirementCard(project, true))}
               </div>
             )}
           </TabsContent>
 
-          {/* User's Completed Projects */}
-          <TabsContent value="completed" className="space-y-6">
-            {loading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Loading completed projects...</p>
+          {/* Portfolio Projects - Only for Verified Students */}
+          {isVerifiedStudent && (
+            <TabsContent value="completed" className="space-y-6">
+              <div className="flex justify-end">
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => handleOpenDialog(undefined, 'portfolio_project')} className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Add Portfolio Project
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingProject ? "Edit Portfolio Project" : "Add Portfolio Project"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="portfolio_title">Title *</Label>
+                        <Input
+                          id="portfolio_title"
+                          value={portfolioFormData.title}
+                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, title: e.target.value })}
+                          placeholder="E-commerce Website Redesign"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="portfolio_description">Description *</Label>
+                        <Textarea
+                          id="portfolio_description"
+                          value={portfolioFormData.description}
+                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, description: e.target.value })}
+                          placeholder="Describe the project you completed..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="portfolio_image_url">Image URL (optional)</Label>
+                        <Input
+                          id="portfolio_image_url"
+                          value={portfolioFormData.image_url}
+                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, image_url: e.target.value })}
+                          placeholder="https://example.com/image.jpg"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="portfolio_rating">Rating (0-5)</Label>
+                          <Input
+                            id="portfolio_rating"
+                            type="number"
+                            min="0"
+                            max="5"
+                            step="0.1"
+                            value={portfolioFormData.rating}
+                            onChange={(e) => setPortfolioFormData({ ...portfolioFormData, rating: e.target.value })}
+                            placeholder="4.5"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="portfolio_completed_at">Completion Date</Label>
+                          <Input
+                            id="portfolio_completed_at"
+                            type="date"
+                            value={portfolioFormData.completed_at}
+                            onChange={(e) => setPortfolioFormData({ ...portfolioFormData, completed_at: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="portfolio_client_feedback">Client Feedback</Label>
+                        <Textarea
+                          id="portfolio_client_feedback"
+                          value={portfolioFormData.client_feedback}
+                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, client_feedback: e.target.value })}
+                          placeholder="What did the client say about this project?"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex gap-3 pt-4">
+                        <Button onClick={handleSave} className="flex-1">
+                          {editingProject ? "Update" : "Add"} Portfolio Project
+                        </Button>
+                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-            ) : completedProjects.length === 0 ? (
-              <Card className="rounded-2xl border-border/40">
-                <CardContent className="py-12 text-center">
-                  <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No Completed Projects</h3>
-                  <p className="text-muted-foreground">Your completed projects will appear here</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {completedProjects.map((project) => renderProjectCard(project, true))}
-              </div>
-            )}
-          </TabsContent>
+
+              {loading ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Loading your portfolio...</p>
+                </div>
+              ) : completedProjects.length === 0 ? (
+                <Card className="rounded-2xl border-border/40">
+                  <CardContent className="py-12 text-center">
+                    <Star className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Portfolio Projects</h3>
+                    <p className="text-muted-foreground mb-6">Showcase your completed work</p>
+                    <Button onClick={() => handleOpenDialog(undefined, 'portfolio_project')} className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Add Your First Project
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {completedProjects.map((project) => renderPortfolioCard(project, true))}
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </main>
