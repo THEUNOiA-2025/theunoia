@@ -236,7 +236,11 @@ const DashboardPage = () => {
               ) : (
                 latestProjects.map((project) => (
                   <Card key={project.id} className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                    {project.image_url ? (
+                    {project.cover_image_url ? (
+                      <div className="w-full h-40 rounded-xl overflow-hidden">
+                        <img src={project.cover_image_url} alt={project.title} className="w-full h-full object-cover" />
+                      </div>
+                    ) : project.image_url ? (
                       <div className="w-full h-40 rounded-xl overflow-hidden">
                         <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
                       </div>

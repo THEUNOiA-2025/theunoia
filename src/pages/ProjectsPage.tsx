@@ -10,10 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
+import { FileUploader } from "@/components/FileUploader";
+import { ImageGallery } from "@/components/ImageGallery";
+import { FileList } from "@/components/FileList";
 
 interface Project {
   id: string;
@@ -21,6 +24,9 @@ interface Project {
   title: string;
   description: string;
   image_url: string | null;
+  cover_image_url: string | null;
+  additional_images: string[] | null;
+  attached_files: any[] | null;
   rating: number | null;
   client_feedback: string | null;
   completed_at: string | null;
@@ -32,6 +38,11 @@ interface Project {
   status: string | null;
 }
 
+interface BidProject extends Project {
+  bidStatus: string;
+  bidAmount: number;
+}
+
 const workRequirementSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000, "Description must be less than 2000 characters"),
@@ -41,13 +52,11 @@ const workRequirementSchema = z.object({
   }, "Budget must be a positive number"),
   timeline: z.string().trim().min(3, "Timeline must be at least 3 characters").max(100, "Timeline must be less than 100 characters"),
   skills_required: z.string().trim().min(1, "At least one skill is required"),
-  image_url: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 const portfolioProjectSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000, "Description must be less than 2000 characters"),
-  image_url: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
   rating: z.string().optional().refine((val) => {
     if (!val) return true;
     const num = parseFloat(val);
@@ -62,6 +71,7 @@ const ProjectsPage = () => {
   const navigate = useNavigate();
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [myProjects, setMyProjects] = useState<Project[]>([]);
+  const [bidProjects, setBidProjects] = useState<BidProject[]>([]);
   const [completedProjects, setCompletedProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,17 +86,19 @@ const ProjectsPage = () => {
     budget: "",
     timeline: "",
     skills_required: "",
-    image_url: "",
   });
 
   const [portfolioFormData, setPortfolioFormData] = useState({
     title: "",
     description: "",
-    image_url: "",
     rating: "",
     client_feedback: "",
     completed_at: "",
   });
+
+  const [uploadedImages, setUploadedImages] = useState<any[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
 
   useEffect(() => {
     if (user) {
@@ -138,6 +150,26 @@ const ProjectsPage = () => {
       if (myError) throw myError;
       setMyProjects((myData as Project[]) || []);
 
+      // Fetch projects where user has placed bids
+      const { data: bidData, error: bidError } = await supabase
+        .from("bids")
+        .select(`
+          amount,
+          status,
+          user_projects (*)
+        `)
+        .eq("freelancer_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (bidError) throw bidError;
+      
+      const bidProjectsData = (bidData || []).map((bid: any) => ({
+        ...bid.user_projects,
+        bidStatus: bid.status,
+        bidAmount: bid.amount,
+      })) as BidProject[];
+      setBidProjects(bidProjectsData);
+
       // Fetch user's portfolio projects (only if verified student)
       if (isVerifiedStudent) {
         const { data: completedData, error: completedError } = await supabase
@@ -170,18 +202,22 @@ const ProjectsPage = () => {
           budget: project.budget?.toString() || "",
           timeline: project.timeline || "",
           skills_required: project.skills_required?.join(", ") || "",
-          image_url: project.image_url || "",
         });
       } else {
         setPortfolioFormData({
           title: project.title,
           description: project.description,
-          image_url: project.image_url || "",
           rating: project.rating?.toString() || "",
           client_feedback: project.client_feedback || "",
           completed_at: project.completed_at || "",
         });
       }
+      
+      // Load existing images and files
+      const images = project.additional_images || [];
+      setUploadedImages(images.map(url => ({ name: url.split('/').pop(), url, type: 'image', size: 0 })));
+      setCoverImageUrl(project.cover_image_url || images[0] || "");
+      setUploadedFiles(project.attached_files || []);
     } else {
       setEditingProject(null);
       setWorkFormData({
@@ -190,16 +226,17 @@ const ProjectsPage = () => {
         budget: "",
         timeline: "",
         skills_required: "",
-        image_url: "",
       });
       setPortfolioFormData({
         title: "",
         description: "",
-        image_url: "",
         rating: "",
         client_feedback: "",
         completed_at: "",
       });
+      setUploadedImages([]);
+      setUploadedFiles([]);
+      setCoverImageUrl("");
     }
     setDialogOpen(true);
   };
@@ -214,6 +251,9 @@ const ProjectsPage = () => {
       if (formType === 'work_requirement') {
         workRequirementSchema.parse(workFormData);
 
+        const imageUrls = uploadedImages.map(img => img.url);
+        const finalCoverImage = coverImageUrl || imageUrls[0] || null;
+
         const projectData = {
           user_id: user.id,
           title: workFormData.title.trim(),
@@ -221,7 +261,9 @@ const ProjectsPage = () => {
           budget: parseFloat(workFormData.budget),
           timeline: workFormData.timeline.trim(),
           skills_required: workFormData.skills_required.split(',').map(s => s.trim()),
-          image_url: workFormData.image_url.trim() || null,
+          cover_image_url: finalCoverImage,
+          additional_images: imageUrls,
+          attached_files: uploadedFiles,
           project_type: 'work_requirement',
           status: 'open',
         };
@@ -245,11 +287,16 @@ const ProjectsPage = () => {
       } else {
         portfolioProjectSchema.parse(portfolioFormData);
 
+        const imageUrls = uploadedImages.map(img => img.url);
+        const finalCoverImage = coverImageUrl || imageUrls[0] || null;
+
         const projectData = {
           user_id: user.id,
           title: portfolioFormData.title.trim(),
           description: portfolioFormData.description.trim(),
-          image_url: portfolioFormData.image_url.trim() || null,
+          cover_image_url: finalCoverImage,
+          additional_images: imageUrls,
+          attached_files: uploadedFiles,
           rating: portfolioFormData.rating ? parseFloat(portfolioFormData.rating) : null,
           client_feedback: portfolioFormData.client_feedback?.trim() || null,
           completed_at: portfolioFormData.completed_at || new Date().toISOString(),
@@ -327,12 +374,16 @@ const ProjectsPage = () => {
     project.skills_required?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const renderWorkRequirementCard = (project: Project, showActions: boolean = false) => (
+  const renderWorkRequirementCard = (project: Project | BidProject, showActions: boolean = false) => {
+    const bidProject = project as BidProject;
+    const hasBidInfo = 'bidStatus' in project;
+    
+    return (
     <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
-      {project.image_url && (
+      {(project.cover_image_url || project.image_url) && (
         <div className="aspect-video w-full overflow-hidden bg-muted">
           <img
-            src={project.image_url}
+            src={project.cover_image_url || project.image_url || ''}
             alt={project.title}
             className="w-full h-full object-cover"
           />
@@ -378,6 +429,22 @@ const ProjectsPage = () => {
             ))}
           </div>
         )}
+        {hasBidInfo && (
+          <div className="pt-2">
+            <Badge 
+              variant={bidProject.bidStatus === 'accepted' ? 'default' : bidProject.bidStatus === 'rejected' ? 'destructive' : 'secondary'}
+              className="text-xs"
+            >
+              Your Bid: ${bidProject.bidAmount} - {bidProject.bidStatus === 'accepted' && project.status === 'in_progress' ? 'Working' : bidProject.bidStatus === 'accepted' && project.status === 'completed' ? 'Completed' : bidProject.bidStatus}
+            </Badge>
+          </div>
+        )}
+        {project.attached_files && project.attached_files.length > 0 && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Paperclip className="w-3 h-3" />
+            <span>{project.attached_files.length} files attached</span>
+          </div>
+        )}
         {showActions ? (
           <div className="flex gap-2 pt-2">
             {project.status === 'open' && (
@@ -414,14 +481,15 @@ const ProjectsPage = () => {
         )}
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
     <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
-      {project.image_url && (
+      {(project.cover_image_url || project.image_url) && (
         <div className="aspect-video w-full overflow-hidden bg-muted">
           <img
-            src={project.image_url}
+            src={project.cover_image_url || project.image_url || ''}
             alt={project.title}
             className="w-full h-full object-cover"
           />
@@ -492,6 +560,14 @@ const ProjectsPage = () => {
             <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
             <p className="text-muted-foreground">Browse available projects or manage your own</p>
           </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Create Project
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </div>
 
         <Tabs defaultValue="browse" className="w-full">
@@ -604,13 +680,38 @@ const ProjectsPage = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="image_url">Image URL (optional)</Label>
-                      <Input
-                        id="image_url"
-                        value={workFormData.image_url}
-                        onChange={(e) => setWorkFormData({ ...workFormData, image_url: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
+                      <Label>Project Images</Label>
+                      <FileUploader
+                        type="image"
+                        maxFiles={5}
+                        onFilesChange={setUploadedImages}
+                        currentFiles={uploadedImages}
                       />
+                      {uploadedImages.length > 1 && (
+                        <ImageGallery
+                          images={uploadedImages.map(img => img.url)}
+                          coverImageUrl={coverImageUrl}
+                          onCoverChange={setCoverImageUrl}
+                          editable
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Additional Files (PDF, DOC, etc.)</Label>
+                      <FileUploader
+                        type="file"
+                        maxFiles={10}
+                        maxSizeInMB={10}
+                        onFilesChange={setUploadedFiles}
+                        currentFiles={uploadedFiles}
+                      />
+                      {uploadedFiles.length > 0 && (
+                        <FileList 
+                          files={uploadedFiles}
+                          onDelete={(index) => setUploadedFiles(uploadedFiles.filter((_, i) => i !== index))}
+                          editable
+                        />
+                      )}
                     </div>
                     <div className="flex gap-3 pt-4">
                       <Button onClick={handleSave} className="flex-1">
@@ -642,9 +743,23 @@ const ProjectsPage = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myProjects.map((project) => renderWorkRequirementCard(project, true))}
-              </div>
+              <>
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Your Posted Projects</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {myProjects.map((project) => renderWorkRequirementCard(project, true))}
+                  </div>
+                </div>
+
+                {bidProjects.length > 0 && (
+                  <div className="mt-10">
+                    <h3 className="text-xl font-semibold mb-4">Projects You've Bid On</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {bidProjects.map((project) => renderWorkRequirementCard(project, false))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -686,13 +801,38 @@ const ProjectsPage = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="portfolio_image_url">Image URL (optional)</Label>
-                        <Input
-                          id="portfolio_image_url"
-                          value={portfolioFormData.image_url}
-                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, image_url: e.target.value })}
-                          placeholder="https://example.com/image.jpg"
+                        <Label>Project Images</Label>
+                        <FileUploader
+                          type="image"
+                          maxFiles={5}
+                          onFilesChange={setUploadedImages}
+                          currentFiles={uploadedImages}
                         />
+                        {uploadedImages.length > 1 && (
+                          <ImageGallery
+                            images={uploadedImages.map(img => img.url)}
+                            coverImageUrl={coverImageUrl}
+                            onCoverChange={setCoverImageUrl}
+                            editable
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Additional Files (PDF, DOC, etc.)</Label>
+                        <FileUploader
+                          type="file"
+                          maxFiles={10}
+                          maxSizeInMB={10}
+                          onFilesChange={setUploadedFiles}
+                          currentFiles={uploadedFiles}
+                        />
+                        {uploadedFiles.length > 0 && (
+                          <FileList 
+                            files={uploadedFiles}
+                            onDelete={(index) => setUploadedFiles(uploadedFiles.filter((_, i) => i !== index))}
+                            editable
+                          />
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">

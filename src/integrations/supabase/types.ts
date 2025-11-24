@@ -272,9 +272,12 @@ export type Database = {
       }
       user_projects: {
         Row: {
+          additional_images: string[] | null
+          attached_files: Json | null
           budget: number | null
           client_feedback: string | null
           completed_at: string | null
+          cover_image_url: string | null
           created_at: string
           description: string
           id: string
@@ -289,9 +292,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          additional_images?: string[] | null
+          attached_files?: Json | null
           budget?: number | null
           client_feedback?: string | null
           completed_at?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description: string
           id?: string
@@ -306,9 +312,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          additional_images?: string[] | null
+          attached_files?: Json | null
           budget?: number | null
           client_feedback?: string | null
           completed_at?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description?: string
           id?: string
