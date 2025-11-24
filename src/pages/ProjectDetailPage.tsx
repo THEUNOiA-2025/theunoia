@@ -11,10 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, DollarSign, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare } from "lucide-react";
+import { ArrowLeft, DollarSign, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
+import { ImageGallery } from "@/components/ImageGallery";
+import { FileList } from "@/components/FileList";
 
 interface Project {
   id: string;
@@ -22,6 +24,9 @@ interface Project {
   title: string;
   description: string;
   image_url: string | null;
+  cover_image_url: string | null;
+  additional_images: string[] | null;
+  attached_files: any[] | null;
   project_type: 'work_requirement' | 'portfolio_project';
   budget: number | null;
   timeline: string | null;
@@ -365,12 +370,26 @@ const ProjectDetailPage = () => {
         </Card>
 
         {/* Project Image */}
-        {project.image_url && (
+        {project.cover_image_url && (
           <Card className="rounded-2xl border-border/40 overflow-hidden">
             <img
-              src={project.image_url}
+              src={project.cover_image_url}
               alt={project.title}
               className="w-full h-96 object-cover"
+            />
+          </Card>
+        )}
+
+        {/* Image Gallery */}
+        {project.additional_images && project.additional_images.length > 1 && (
+          <Card className="rounded-2xl border-border/40 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Images className="w-5 h-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Project Gallery</h3>
+            </div>
+            <ImageGallery
+              images={project.additional_images}
+              coverImageUrl={project.cover_image_url || undefined}
             />
           </Card>
         )}
@@ -431,10 +450,22 @@ const ProjectDetailPage = () => {
                     ))}
                   </div>
                 </div>
-              </>
+            </>
             )}
           </CardContent>
         </Card>
+
+        {/* Attached Files */}
+        {project.attached_files && project.attached_files.length > 0 && (
+          <Card className="rounded-2xl border-border/40">
+            <CardHeader>
+              <CardTitle>Project Files</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FileList files={project.attached_files} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Bids Section - Only visible to project owner */}
         {isProjectOwner && bids.length > 0 && (
