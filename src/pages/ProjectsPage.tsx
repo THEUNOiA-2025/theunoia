@@ -502,33 +502,42 @@ const ProjectsPage = () => {
           </div>
         )}
         {showActions ? (
-          <div className="flex gap-2 pt-2">
-            {project.status === 'open' && (
+          <div className="space-y-2 pt-2">
+            <Button 
+              className="w-full" 
+              size="sm" 
+              onClick={() => navigate(`/projects/${project.id}`)}
+            >
+              View Details & Bids
+            </Button>
+            <div className="flex gap-2">
+              {project.status === 'open' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleMarkComplete(project.id)}
+                >
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Mark Complete
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1"
-                onClick={() => handleMarkComplete(project.id)}
+                onClick={() => openWorkRequirementDialog(project)}
               >
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Mark Complete
+                <Edit className="w-3 h-3 mr-1" />
+                Edit
               </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openWorkRequirementDialog(project)}
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDelete(project.id)}
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDelete(project.id)}
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
         ) : (
           <Button className="w-full mt-2" size="sm" onClick={() => navigate(`/projects/${project.id}`)}>
