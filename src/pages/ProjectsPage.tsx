@@ -869,6 +869,8 @@ const ProjectsPage = () => {
                 )}
               </>
             )}
+          </>
+          )}
           </TabsContent>
 
           {/* Portfolio Projects - Only for Verified Students */}
