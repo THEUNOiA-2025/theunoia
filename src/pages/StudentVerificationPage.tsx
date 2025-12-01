@@ -238,7 +238,10 @@ const StudentVerificationPage = () => {
     }
   };
 
-  const canSubmit = !verification || verification.verification_status === "rejected";
+  // Allow submission if: no verification, rejected, or missing required fields like college_id
+  const canSubmit = !verification || 
+                    verification.verification_status === "rejected" ||
+                    !verification.college_id;
   const statusInfo = verification ? getStatusInfo(verification.verification_status) : null;
 
   return (
@@ -278,10 +281,21 @@ const StudentVerificationPage = () => {
               </div>
             )}
 
-            {verification?.verification_status === "approved" && (
+            {verification?.verification_status === "approved" && verification.college_id && (
               <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <p className="text-sm text-green-800 dark:text-green-200">
                   Your student status has been verified! You now have access to all freelancer features.
+                </p>
+              </div>
+            )}
+
+            {verification?.verification_status === "approved" && !verification.college_id && (
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                  Update Required
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  Please select your college to complete your verification and access community features.
                 </p>
               </div>
             )}
