@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X } from "lucide-react";
+import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -27,6 +27,7 @@ const StudentVerificationPage = () => {
   const [idCardFile, setIdCardFile] = useState<File | null>(null);
   const [idCardPreview, setIdCardPreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
+  const [isEditingCollege, setIsEditingCollege] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -238,10 +239,11 @@ const StudentVerificationPage = () => {
     }
   };
 
-  // Allow submission if: no verification, rejected, or missing required fields like college_id
+  // Allow submission if: no verification, rejected, missing required fields like college_id, or editing college
   const canSubmit = !verification || 
                     verification.verification_status === "rejected" ||
-                    !verification.college_id;
+                    !verification.college_id ||
+                    isEditingCollege;
   const statusInfo = verification ? getStatusInfo(verification.verification_status) : null;
 
   return (
@@ -281,10 +283,21 @@ const StudentVerificationPage = () => {
               </div>
             )}
 
-            {verification?.verification_status === "approved" && verification.college_id && (
+            {verification?.verification_status === "approved" && verification.college_id && !isEditingCollege && (
               <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <p className="text-sm text-green-800 dark:text-green-200">
                   Your student status has been verified! You now have access to all freelancer features.
+                </p>
+              </div>
+            )}
+
+            {isEditingCollege && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+                  Updating College Information
+                </p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Select your new college and submit. Your verification will be reviewed again if necessary.
                 </p>
               </div>
             )}
@@ -313,8 +326,36 @@ const StudentVerificationPage = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="college">College/University *</Label>
-                {verification?.verification_status === "approved" && verification.college_id && verification.colleges ? (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="college">College/University *</Label>
+                  {verification?.verification_status === "approved" && verification.college_id && !isEditingCollege && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingCollege(true)}
+                      className="h-8 gap-1"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Edit
+                    </Button>
+                  )}
+                  {isEditingCollege && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditingCollege(false);
+                        setSelectedCollege(verification?.college_id || "");
+                      }}
+                      className="h-8"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+                {verification?.verification_status === "approved" && verification.college_id && verification.colleges && !isEditingCollege ? (
                   <div className="p-3 border border-border rounded-md bg-muted/50">
                     <p className="text-sm font-medium">
                       {verification.colleges.name} - {verification.colleges.city}, {verification.colleges.state}
@@ -326,10 +367,10 @@ const StudentVerificationPage = () => {
                     onValueChange={setSelectedCollege}
                     disabled={!canSubmit}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Select your college" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
+                    <SelectContent className="max-h-[300px] bg-background z-50">
                       {colleges.map((college) => (
                         <SelectItem key={college.id} value={college.id}>
                           {college.name} - {college.city}, {college.state}
@@ -442,6 +483,8 @@ const StudentVerificationPage = () => {
                   ? "Uploading..."
                   : loading
                   ? "Submitting..."
+                  : isEditingCollege
+                  ? "Update College Information"
                   : "Submit Verification Request"}
               </Button>
             )}
