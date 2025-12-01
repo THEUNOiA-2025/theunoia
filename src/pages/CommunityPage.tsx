@@ -58,7 +58,7 @@ export default function CommunityPage() {
       // Check verification status and get college
       const { data: verification, error: verError } = await supabase
         .from('student_verifications')
-        .select('verification_status, college_id')
+        .select('verification_status, college_id, colleges(id, name, short_name, city, state)')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -69,28 +69,14 @@ export default function CommunityPage() {
         return;
       }
 
-      if (!verification || verification.verification_status !== 'approved' || !verification.college_id) {
+      if (!verification || verification.verification_status !== 'approved') {
         setIsVerified(false);
         setLoading(false);
         return;
       }
 
-      // Fetch college details separately
-      const { data: collegeData, error: collegeError } = await supabase
-        .from('colleges')
-        .select('id, name, short_name, city, state')
-        .eq('id', verification.college_id)
-        .single();
-
-      if (collegeError || !collegeData) {
-        console.error('Error fetching college:', collegeError);
-        toast.error("Failed to load college data");
-        setLoading(false);
-        return;
-      }
-
       setIsVerified(true);
-      setUserCollege(collegeData);
+      setUserCollege(verification.colleges as any);
 
       // Fetch community members (verified students from same college)
       const { data: membersData, error: membersError } = await supabase
