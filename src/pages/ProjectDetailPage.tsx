@@ -317,8 +317,45 @@ const ProjectDetailPage = () => {
                       Place Bid
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-...
+                  <DialogContent className="max-w-2xl bg-background">
+                    <DialogHeader>
+                      <DialogTitle>Place Your Bid</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div>
+                        <Label htmlFor="bid-amount">Bid Amount ($)</Label>
+                        <Input
+                          id="bid-amount"
+                          type="number"
+                          placeholder="Enter your bid amount"
+                          value={bidFormData.amount}
+                          onChange={(e) => setBidFormData({ ...bidFormData, amount: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="bid-proposal">Proposal</Label>
+                        <Textarea
+                          id="bid-proposal"
+                          placeholder="Describe why you're the best fit for this project..."
+                          value={bidFormData.proposal}
+                          onChange={(e) => setBidFormData({ ...bidFormData, proposal: e.target.value })}
+                          className="mt-1 min-h-[150px]"
+                          maxLength={3000}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {bidFormData.proposal.length}/3000 characters
+                        </p>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-4">
+                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handlePlaceBid}>
+                          Submit Bid
+                        </Button>
+                      </div>
+                    </div>
                   </DialogContent>
                 </Dialog>
               )}
