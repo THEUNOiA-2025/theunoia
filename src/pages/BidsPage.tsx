@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Calendar, DollarSign, FileText, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Calendar, IndianRupee, FileText, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Bid {
@@ -197,8 +197,8 @@ export default function BidsPage() {
                       <div className="space-y-4">
                         <div className="flex items-center gap-6 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4" />
-                            <span className="font-semibold text-foreground">${bid.amount}</span>
+                            <IndianRupee className="w-4 h-4" />
+                            <span className="font-semibold text-foreground">₹{bid.amount}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
@@ -250,8 +250,8 @@ export default function BidsPage() {
                       <div className="space-y-4">
                         <div className="flex items-center gap-6 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4" />
-                            <span className="font-semibold text-foreground">${bid.amount}</span>
+                            <IndianRupee className="w-4 h-4" />
+                            <span className="font-semibold text-foreground">₹{bid.amount}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
