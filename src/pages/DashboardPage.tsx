@@ -203,7 +203,7 @@ const DashboardPage = () => {
                           {project.budget && (
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-muted-foreground">Budget:</span>
-                              <span className="text-lg font-semibold text-foreground">${project.budget}</span>
+                              <span className="text-lg font-semibold text-foreground">₹{project.budget}</span>
                             </div>
                           )}
                           
@@ -365,7 +365,7 @@ const DashboardPage = () => {
                       )}
                       {project.budget && (
                         <p className="text-primary font-semibold text-sm mt-2">
-                          Budget: ${project.budget}
+                          Budget: ₹{project.budget}
                         </p>
                       )}
                     </div>

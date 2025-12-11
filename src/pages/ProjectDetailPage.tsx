@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, DollarSign, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag } from "lucide-react";
+import { ArrowLeft, IndianRupee, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -313,7 +313,7 @@ const ProjectDetailPage = () => {
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2">
-                      <DollarSign className="w-4 h-4" />
+                      <IndianRupee className="w-4 h-4" />
                       Place Bid
                     </Button>
                   </DialogTrigger>
@@ -449,7 +449,7 @@ const ProjectDetailPage = () => {
               {project.budget && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <IndianRupee className="w-4 h-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold text-foreground">Budget</h3>
                   </div>
                   <p className="text-2xl font-bold text-foreground">₹{project.budget}</p>
@@ -549,7 +549,7 @@ const ProjectDetailPage = () => {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-foreground">${bid.amount}</p>
+                            <p className="text-2xl font-bold text-foreground">₹{bid.amount}</p>
                             <Badge 
                               variant={
                                 bid.status === 'accepted' ? 'default' : 

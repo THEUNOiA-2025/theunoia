@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, GraduationCap, Calendar, DollarSign, MapPin, Mail } from "lucide-react";
+import { Users, GraduationCap, Calendar, IndianRupee, MapPin, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 interface College {
@@ -223,7 +223,7 @@ export default function CommunityPage() {
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{task.description}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-primary font-semibold">
-                          <DollarSign className="w-4 h-4" />
+                          <IndianRupee className="w-4 h-4" />
                           ₹{task.budget}
                         </div>
                         <Badge variant="outline">{task.category}</Badge>

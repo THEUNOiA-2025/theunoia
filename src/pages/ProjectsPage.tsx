@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -527,8 +527,8 @@ const ProjectsPage = () => {
         <div className="flex items-center gap-4 text-sm flex-wrap">
           {project.budget && (
             <div className="flex items-center gap-1">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <span className="font-semibold">${project.budget}</span>
+              <IndianRupee className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold">₹{project.budget}</span>
             </div>
           )}
           {project.timeline && (
