@@ -21,6 +21,7 @@ const BidsPage = lazy(() => import("./pages/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
+const ImportCollegesPage = lazy(() => import("./pages/ImportCollegesPage"));
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,16 @@ const App = () => (
                 } 
               />
             </Route>
+            
+            {/* Admin route for importing colleges */}
+            <Route 
+              path="/admin/import-colleges" 
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <ImportCollegesPage />
+                </Suspense>
+              } 
+            />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
