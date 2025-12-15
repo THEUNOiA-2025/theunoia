@@ -18,6 +18,9 @@ const DashboardPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [myBids, setMyBids] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -109,6 +112,38 @@ const DashboardPage = () => {
     fetchLatestProjects();
   }, [user, selectedCategory]);
 
+  // Handle search
+  useEffect(() => {
+    const searchProjects = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const { data, error } = await supabase
+          .from('user_projects')
+          .select('*')
+          .eq('project_type', 'work_requirement')
+          .eq('status', 'open')
+          .eq('is_community_task', false)
+          .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%,subcategory.ilike.%${searchQuery}%`)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        setSearchResults(data || []);
+      } catch (error) {
+        console.error('Error searching projects:', error);
+      }
+    };
+
+    const debounce = setTimeout(searchProjects, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
+
   const firstName = profile?.first_name || 'User';
 
   return (
@@ -120,9 +155,44 @@ const DashboardPage = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search projects, students, or skills..."
+                placeholder="Search projects, skills, or categories..."
                 className="pl-12 h-12 rounded-2xl border-border/60 text-[0.9375rem] shadow-sm bg-white"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {/* Search Results Dropdown */}
+              {searchQuery.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-muted-foreground">Searching...</div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground">No projects found</div>
+                  ) : (
+                    <div className="py-2">
+                      {searchResults.map((project) => (
+                        <button
+                          key={project.id}
+                          className="w-full px-4 py-3 text-left hover:bg-muted/50 flex flex-col gap-1 border-b border-border/40 last:border-b-0"
+                          onClick={() => {
+                            navigate(`/projects/${project.id}`);
+                            setSearchQuery("");
+                          }}
+                        >
+                          <span className="font-medium text-foreground line-clamp-1">{project.title}</span>
+                          <div className="flex items-center gap-2">
+                            {project.category && (
+                              <span className="text-xs text-primary">{project.category}</span>
+                            )}
+                            {project.budget && (
+                              <span className="text-xs text-muted-foreground">₹{project.budget}</span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center justify-end gap-3">
