@@ -1,1 +1,4 @@
 project_id = "idvwckpcsktnplnvwvba"
+
+[functions.import-colleges]
+verify_jwt = false
