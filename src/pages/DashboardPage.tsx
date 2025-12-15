@@ -137,6 +137,9 @@ const DashboardPage = () => {
         setSearchResults(data || []);
       } catch (error) {
         console.error('Error searching projects:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
       }
     };
 
