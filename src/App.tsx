@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
+import { GlobalNotificationProvider } from "./components/GlobalNotificationProvider";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -31,100 +32,102 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            
-            {/* Public project detail route (no sidebar) */}
-            <Route 
-              path="/projects/:id" 
-              element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <ProjectDetailPage />
-                </Suspense>
-              } 
-            />
-            
-            {/* Dashboard routes with shared layout */}
-            <Route element={<DashboardLayout />}>
+          <GlobalNotificationProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              
+              {/* Public project detail route (no sidebar) */}
               <Route 
-                path="/projects" 
+                path="/projects/:id" 
                 element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <ProjectsPage />
+                    <ProjectDetailPage />
                   </Suspense>
                 } 
               />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <DashboardPage />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <ProfilePage />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/profile/edit" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <EditProfilePage />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/profile/verify" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <StudentVerificationPage />
-                  </Suspense>
-                } 
-              />
-              <Route
-                path="/bids"
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <BidsPage />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/messages" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <MessagesPage />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/calendar" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <CalendarPage />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/community" 
-                element={
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <CommunityPage />
-                  </Suspense>
-                } 
-              />
-            </Route>
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              
+              {/* Dashboard routes with shared layout */}
+              <Route element={<DashboardLayout />}>
+                <Route 
+                  path="/projects" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <ProjectsPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <DashboardPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <ProfilePage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/profile/edit" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <EditProfilePage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/profile/verify" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <StudentVerificationPage />
+                    </Suspense>
+                  } 
+                />
+                <Route
+                  path="/bids"
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <BidsPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/messages" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <MessagesPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/calendar" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <CalendarPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/community" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <CommunityPage />
+                    </Suspense>
+                  } 
+                />
+              </Route>
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </GlobalNotificationProvider>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
