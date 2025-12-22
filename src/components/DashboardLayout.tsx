@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useQuery } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/useAdminRole';
 
 export const DashboardLayout = () => {
   const { user, loading, signOut } = useAuth();
@@ -12,6 +13,7 @@ export const DashboardLayout = () => {
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
+  const { isAdmin } = useAdminRole();
 
   // Public routes that don't require authentication
   const publicRoutes = ['/projects'];
@@ -115,6 +117,7 @@ export const DashboardLayout = () => {
         profilePictureUrl={profile?.profile_picture_url}
         unreadMessageCount={unreadCount}
         isVerifiedStudent={isVerifiedStudent}
+        isAdmin={isAdmin}
         onSignOut={handleSignOut}
       />
       <main className={`ml-64 ${location.pathname === '/messages' ? '' : 'p-6'}`}>

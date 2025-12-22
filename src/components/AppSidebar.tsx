@@ -1,4 +1,4 @@
-import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, Users, CalendarDays } from 'lucide-react';
+import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, Users, CalendarDays, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import theunoiaLogo from '@/assets/theunoia-logo.png';
 
@@ -10,6 +10,7 @@ interface AppSidebarProps {
   profilePictureUrl?: string | null;
   isVerifiedStudent?: boolean;
   unreadMessageCount?: number;
+  isAdmin?: boolean;
 }
 
 const navItems = [
@@ -29,7 +30,8 @@ export const AppSidebar = ({
   displayEmail, 
   profilePictureUrl,
   isVerifiedStudent = false,
-  unreadMessageCount
+  unreadMessageCount,
+  isAdmin = false
 }: AppSidebarProps) => {
   const navigate = useNavigate();
 
@@ -79,7 +81,26 @@ export const AppSidebar = ({
                 )}
               </a>
             );
-          })}
+        })}
+        
+        {/* Admin Panel Link */}
+        {isAdmin && (
+          <a
+            href="/admin"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate('/admin');
+            }}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all mt-4 border-t border-border/60 pt-4 ${
+              currentPath.startsWith('/admin')
+                ? 'bg-primary-light text-primary font-semibold'
+                : 'hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium rounded-xl'
+            }`}
+          >
+            <ShieldCheck className="w-[18px] h-[18px]" />
+            <p className="text-[0.9375rem]">Admin Panel</p>
+          </a>
+        )}
         </nav>
       </div>
 
