@@ -284,7 +284,7 @@ const StudentVerificationPage = () => {
         verification_method: hasValidEmail ? 'email' : 'id_card',
       };
 
-      const { error } = await supabase.from("student_verifications").upsert(verificationData);
+      const { error } = await supabase.from("student_verifications").upsert(verificationData, { onConflict: 'user_id' });
 
       if (error) throw error;
 
