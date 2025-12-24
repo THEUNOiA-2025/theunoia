@@ -494,6 +494,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_college_states: {
+        Args: never
+        Returns: {
+          state: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

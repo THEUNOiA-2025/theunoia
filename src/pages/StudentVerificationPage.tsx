@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 const StudentVerificationPage = () => {
   const navigate = useNavigate();
@@ -22,11 +21,18 @@ const StudentVerificationPage = () => {
   const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" });
   const [verification, setVerification] = useState<any>(null);
   const [states, setStates] = useState<string[]>([]);
+  const [statesLoading, setStatesLoading] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("");
+  const [stateOpen, setStateOpen] = useState(false);
+  
+  // College search state
   const [colleges, setColleges] = useState<any[]>([]);
   const [collegesLoading, setCollegesLoading] = useState(false);
+  const [collegeSearchQuery, setCollegeSearchQuery] = useState("");
   const [selectedCollege, setSelectedCollege] = useState<string>("");
+  const [selectedCollegeData, setSelectedCollegeData] = useState<any>(null);
   const [collegeOpen, setCollegeOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     instituteEmail: "",
     enrollmentId: "",
@@ -36,20 +42,40 @@ const StudentVerificationPage = () => {
   const [uploading, setUploading] = useState(false);
   const [isEditingCollege, setIsEditingCollege] = useState(false);
 
+  // Debounce timer ref
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (user) {
       fetchData();
     }
   }, [user]);
 
+  // Fetch states using the RPC function
+  const fetchStates = async () => {
+    setStatesLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_college_states');
+      if (error) throw error;
+      setStates((data || []).map((row: { state: string }) => row.state));
+    } catch (error) {
+      console.error("Error fetching states:", error);
+      toast.error("Failed to load states");
+    } finally {
+      setStatesLoading(false);
+    }
+  };
+
   const fetchData = async () => {
     if (!user?.id) return;
     
     try {
-      const [profileRes, verificationRes, statesRes] = await Promise.all([
+      // Fetch states first using RPC
+      fetchStates();
+      
+      const [profileRes, verificationRes] = await Promise.all([
         supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
         supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id).maybeSingle(),
-        supabase.from("colleges").select("state").order("state"),
       ]);
 
       if (profileRes.data) {
@@ -60,12 +86,6 @@ const StudentVerificationPage = () => {
         });
       }
 
-      // Extract unique states
-      if (statesRes.data) {
-        const uniqueStates = [...new Set(statesRes.data.map((c: any) => c.state))].filter(Boolean) as string[];
-        setStates(uniqueStates);
-      }
-
       if (verificationRes.data) {
         setVerification(verificationRes.data);
         setSelectedCollege(verificationRes.data.college_id || "");
@@ -74,18 +94,10 @@ const StudentVerificationPage = () => {
           enrollmentId: verificationRes.data.enrollment_id || "",
         });
         
-        // If existing verification has a college, set the state from it
-        if (verificationRes.data.colleges?.state) {
-          setSelectedState(verificationRes.data.colleges.state);
-          // Fetch colleges for that state
-          const { data: collegesData } = await supabase
-            .from("colleges")
-            .select("*")
-            .eq("state", verificationRes.data.colleges.state)
-            .order("name");
-          if (collegesData) {
-            setColleges(collegesData);
-          }
+        // If existing verification has a college, set the college data and state
+        if (verificationRes.data.colleges) {
+          setSelectedCollegeData(verificationRes.data.colleges);
+          setSelectedState(verificationRes.data.colleges.state || "");
         }
         
         // Load ID card if exists
@@ -109,35 +121,84 @@ const StudentVerificationPage = () => {
     }
   };
 
-  // Fetch colleges when state changes
-  const fetchCollegesForState = async (state: string) => {
+  // Server-side college search with debouncing
+  const searchColleges = useCallback(async (query: string, state: string) => {
     if (!state) {
       setColleges([]);
       return;
     }
-    
+
     setCollegesLoading(true);
     try {
-      const { data, error } = await supabase
+      let queryBuilder = supabase
         .from("colleges")
-        .select("*")
+        .select("id, name, city, state")
         .eq("state", state)
-        .order("name");
+        .eq("is_active", true)
+        .order("name")
+        .limit(50);
+
+      // If there's a search query, filter by name
+      if (query.trim().length >= 2) {
+        queryBuilder = queryBuilder.ilike("name", `%${query.trim()}%`);
+      }
+
+      const { data, error } = await queryBuilder;
       
       if (error) throw error;
       setColleges(data || []);
     } catch (error) {
-      console.error("Error fetching colleges:", error);
-      toast.error("Failed to load colleges");
+      console.error("Error searching colleges:", error);
     } finally {
       setCollegesLoading(false);
     }
+  }, []);
+
+  // Handle college search with debounce
+  const handleCollegeSearch = (value: string) => {
+    setCollegeSearchQuery(value);
+    
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      searchColleges(value, selectedState);
+    }, 300);
+    
+    setSearchDebounceTimer(timer);
   };
+
+  // Fetch initial colleges when state changes or popover opens
+  useEffect(() => {
+    if (selectedState && collegeOpen) {
+      searchColleges(collegeSearchQuery, selectedState);
+    }
+  }, [selectedState, collegeOpen]);
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
 
   const handleStateChange = (state: string) => {
     setSelectedState(state);
-    setSelectedCollege(""); // Clear college when state changes
-    fetchCollegesForState(state);
+    setSelectedCollege("");
+    setSelectedCollegeData(null);
+    setColleges([]);
+    setCollegeSearchQuery("");
+    setStateOpen(false);
+  };
+
+  const handleCollegeSelect = (college: any) => {
+    setSelectedCollege(college.id);
+    setSelectedCollegeData(college);
+    setCollegeOpen(false);
+    setCollegeSearchQuery("");
   };
 
   const validateEmail = (email: string) => {
@@ -149,14 +210,12 @@ const StudentVerificationPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Please upload a valid image file (JPG, PNG, or WEBP)");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("File size must be less than 5MB");
       return;
@@ -164,7 +223,6 @@ const StudentVerificationPage = () => {
 
     setIdCardFile(file);
     
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setIdCardPreview(reader.result as string);
@@ -193,8 +251,6 @@ const StudentVerificationPage = () => {
         });
 
       if (error) throw error;
-
-      // For non-public bucket, use the path directly (URL will be handled via RLS)
       return data.path;
     } catch (error) {
       console.error('Error uploading ID card:', error);
@@ -216,7 +272,6 @@ const StudentVerificationPage = () => {
       return;
     }
 
-    // Validate that either email OR ID card is provided
     const hasValidEmail = formData.instituteEmail && validateEmail(formData.instituteEmail);
     const hasIdCard = idCardFile || idCardPreview;
 
@@ -229,14 +284,13 @@ const StudentVerificationPage = () => {
     try {
       let idCardUrl = idCardPreview || null;
       
-      // Upload new ID card if provided
       if (idCardFile) {
         const uploadedUrl = await uploadIdCard();
         if (uploadedUrl) {
           idCardUrl = uploadedUrl;
         } else {
           setLoading(false);
-          return; // Upload failed, don't proceed
+          return;
         }
       }
 
@@ -293,12 +347,23 @@ const StudentVerificationPage = () => {
     }
   };
 
-  // Allow submission if: no verification, rejected, missing required fields like college_id, or editing college
   const canSubmit = !verification || 
                     verification.verification_status === "rejected" ||
                     !verification.college_id ||
                     isEditingCollege;
   const statusInfo = verification ? getStatusInfo(verification.verification_status) : null;
+
+  // Get display text for selected college
+  const getSelectedCollegeDisplay = () => {
+    if (selectedCollegeData) {
+      return `${selectedCollegeData.name} - ${selectedCollegeData.city}`;
+    }
+    if (selectedCollege) {
+      const found = colleges.find(c => c.id === selectedCollege);
+      if (found) return `${found.name} - ${found.city}`;
+    }
+    return null;
+  };
 
   return (
     <main className="flex-1 p-8">
@@ -402,6 +467,10 @@ const StudentVerificationPage = () => {
                       onClick={() => {
                         setIsEditingCollege(false);
                         setSelectedCollege(verification?.college_id || "");
+                        if (verification?.colleges) {
+                          setSelectedCollegeData(verification.colleges);
+                          setSelectedState(verification.colleges.state || "");
+                        }
                       }}
                       className="h-8"
                     >
@@ -420,15 +489,25 @@ const StudentVerificationPage = () => {
                     {/* State Selection */}
                     <div className="space-y-2">
                       <Label htmlFor="state" className="text-sm text-muted-foreground">Step 1: Select State</Label>
-                      <Popover>
+                      <Popover open={stateOpen} onOpenChange={setStateOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            disabled={!canSubmit}
+                            aria-expanded={stateOpen}
+                            disabled={!canSubmit || statesLoading}
                             className="w-full justify-between bg-background font-normal"
                           >
-                            {selectedState || "Select state first..."}
+                            {statesLoading ? (
+                              <span className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Loading states...
+                              </span>
+                            ) : selectedState ? (
+                              selectedState
+                            ) : (
+                              "Select state first..."
+                            )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
@@ -462,55 +541,63 @@ const StudentVerificationPage = () => {
 
                     {/* College Selection */}
                     <div className="space-y-2">
-                      <Label htmlFor="college" className="text-sm text-muted-foreground">Step 2: Select College</Label>
+                      <Label htmlFor="college" className="text-sm text-muted-foreground">Step 2: Search & Select College</Label>
                       <Popover open={collegeOpen} onOpenChange={setCollegeOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            disabled={!canSubmit || !selectedState || collegesLoading}
+                            aria-expanded={collegeOpen}
+                            disabled={!canSubmit || !selectedState}
                             className="w-full justify-between bg-background font-normal"
                           >
-                            {collegesLoading ? (
-                              "Loading colleges..."
-                            ) : selectedCollege ? (
-                              (() => {
-                                const college = colleges.find((c) => c.id === selectedCollege);
-                                return college ? `${college.name} - ${college.city}` : "Select your college";
-                              })()
-                            ) : selectedState ? (
-                              "Search and select your college..."
-                            ) : (
-                              "Select state first..."
+                            {getSelectedCollegeDisplay() || (
+                              selectedState ? "Type to search colleges..." : "Select state first..."
                             )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                          <Command>
-                            <CommandInput placeholder="Search colleges..." />
+                          <Command shouldFilter={false}>
+                            <CommandInput 
+                              placeholder="Type at least 2 characters to search..." 
+                              value={collegeSearchQuery}
+                              onValueChange={handleCollegeSearch}
+                            />
                             <CommandList className="max-h-[300px]">
-                              <CommandEmpty>No college found.</CommandEmpty>
-                              <CommandGroup>
-                                {colleges.map((college) => (
-                                  <CommandItem
-                                    key={college.id}
-                                    value={`${college.name} ${college.city}`}
-                                    onSelect={() => {
-                                      setSelectedCollege(college.id);
-                                      setCollegeOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedCollege === college.id ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    {college.name} - {college.city}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
+                              {collegesLoading ? (
+                                <div className="flex items-center justify-center py-6">
+                                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                                  <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
+                                </div>
+                              ) : colleges.length === 0 ? (
+                                <CommandEmpty>
+                                  {collegeSearchQuery.length < 2 
+                                    ? "Type at least 2 characters to search" 
+                                    : "No college found. Try a different search term."}
+                                </CommandEmpty>
+                              ) : (
+                                <CommandGroup heading={`Showing ${colleges.length} results`}>
+                                  {colleges.map((college) => (
+                                    <CommandItem
+                                      key={college.id}
+                                      value={college.id}
+                                      onSelect={() => handleCollegeSelect(college)}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          selectedCollege === college.id ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex flex-col">
+                                        <span>{college.name}</span>
+                                        <span className="text-xs text-muted-foreground">{college.city}</span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
                             </CommandList>
                           </Command>
                         </PopoverContent>
