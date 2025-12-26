@@ -136,6 +136,36 @@ export type Database = {
           },
         ]
       }
+      email_verification_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       freelancer_access: {
         Row: {
           created_at: string | null
@@ -243,6 +273,8 @@ export type Database = {
         Row: {
           college_id: string | null
           created_at: string | null
+          email_verified: boolean | null
+          email_verified_at: string | null
           enrollment_id: string | null
           id: string
           id_card_url: string | null
@@ -260,6 +292,8 @@ export type Database = {
         Insert: {
           college_id?: string | null
           created_at?: string | null
+          email_verified?: boolean | null
+          email_verified_at?: string | null
           enrollment_id?: string | null
           id?: string
           id_card_url?: string | null
@@ -277,6 +311,8 @@ export type Database = {
         Update: {
           college_id?: string | null
           created_at?: string | null
+          email_verified?: boolean | null
+          email_verified_at?: string | null
           enrollment_id?: string | null
           id?: string
           id_card_url?: string | null

@@ -9,14 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X, Pencil } from "lucide-react";
+import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X, Pencil, Mail, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const StudentVerificationPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" });
   const [verification, setVerification] = useState<any>(null);
@@ -41,11 +42,42 @@ const StudentVerificationPage = () => {
   const [uploading, setUploading] = useState(false);
   const [isEditingCollege, setIsEditingCollege] = useState(false);
 
+  // Email OTP verification state
+  const [emailVerificationStep, setEmailVerificationStep] = useState<'input' | 'sent' | 'verified'>('input');
+  const [otpCode, setOtpCode] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [codeExpiresAt, setCodeExpiresAt] = useState<Date | null>(null);
+
   useEffect(() => {
     if (user) {
       fetchData();
     }
   }, [user]);
+
+  // Handle resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Handle code expiry timer
+  useEffect(() => {
+    if (codeExpiresAt && emailVerificationStep === 'sent') {
+      const interval = setInterval(() => {
+        const now = new Date();
+        if (now >= codeExpiresAt) {
+          setEmailVerificationStep('input');
+          setCodeExpiresAt(null);
+          toast.error("Verification code expired. Please request a new one.");
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [codeExpiresAt, emailVerificationStep]);
 
   // Fetch states using the RPC function
   const fetchStates = async () => {
@@ -89,6 +121,11 @@ const StudentVerificationPage = () => {
           instituteEmail: verificationRes.data.institute_email || "",
           enrollmentId: verificationRes.data.enrollment_id || "",
         });
+        
+        // Check if email is already verified
+        if (verificationRes.data.email_verified) {
+          setEmailVerificationStep('verified');
+        }
         
         // If existing verification has a college, set the college data and state
         if (verificationRes.data.colleges) {
@@ -186,6 +223,101 @@ const StudentVerificationPage = () => {
     return eduDomains.some((domain) => email.toLowerCase().includes(domain));
   };
 
+  const handleSendVerificationCode = async () => {
+    if (!formData.instituteEmail || !validateEmail(formData.instituteEmail)) {
+      toast.error("Please enter a valid educational email (.edu or .ac domain)");
+      return;
+    }
+
+    if (!session?.access_token) {
+      toast.error("Please log in to continue");
+      return;
+    }
+
+    setSendingCode(true);
+    try {
+      const response = await supabase.functions.invoke('send-email-verification', {
+        body: { email: formData.instituteEmail },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to send verification code");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      setEmailVerificationStep('sent');
+      setCodeExpiresAt(new Date(Date.now() + 10 * 60 * 1000)); // 10 minutes
+      setResendCooldown(60); // 60 second cooldown
+      toast.success("Verification code sent to your email!");
+    } catch (error: any) {
+      console.error("Error sending verification code:", error);
+      toast.error(error.message || "Failed to send verification code");
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (otpCode.length !== 6) {
+      toast.error("Please enter the complete 6-digit code");
+      return;
+    }
+
+    if (!session?.access_token) {
+      toast.error("Please log in to continue");
+      return;
+    }
+
+    setVerifyingCode(true);
+    try {
+      const response = await supabase.functions.invoke('verify-email-code', {
+        body: { 
+          email: formData.instituteEmail,
+          code: otpCode,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to verify code");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      setEmailVerificationStep('verified');
+      setCodeExpiresAt(null);
+      toast.success("Email verified successfully!");
+      
+      // Refresh verification data
+      fetchData();
+    } catch (error: any) {
+      console.error("Error verifying code:", error);
+      toast.error(error.message || "Failed to verify code");
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (resendCooldown > 0) return;
+    setOtpCode("");
+    await handleSendVerificationCode();
+  };
+
+  const getTimeRemaining = () => {
+    if (!codeExpiresAt) return "";
+    const now = new Date();
+    const diff = codeExpiresAt.getTime() - now.getTime();
+    if (diff <= 0) return "Expired";
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -252,11 +384,11 @@ const StudentVerificationPage = () => {
       return;
     }
 
-    const hasValidEmail = formData.instituteEmail && validateEmail(formData.instituteEmail);
+    const hasVerifiedEmail = emailVerificationStep === 'verified';
     const hasIdCard = idCardFile || idCardPreview;
 
-    if (!hasValidEmail && !hasIdCard) {
-      toast.error("Please provide either a valid institute email (.edu or .ac domain) OR upload your student ID card");
+    if (!hasVerifiedEmail && !hasIdCard) {
+      toast.error("Please verify your email OR upload your student ID card");
       return;
     }
 
@@ -281,7 +413,9 @@ const StudentVerificationPage = () => {
         enrollment_id: formData.enrollmentId || null,
         verification_status: "pending",
         id_card_url: idCardUrl,
-        verification_method: hasValidEmail ? 'email' : 'id_card',
+        verification_method: hasVerifiedEmail ? 'email' : 'id_card',
+        email_verified: hasVerifiedEmail,
+        email_verified_at: hasVerifiedEmail ? new Date().toISOString() : null,
       };
 
       const { error } = await supabase.from("student_verifications").upsert(verificationData, { onConflict: 'user_id' });
@@ -584,28 +718,149 @@ const StudentVerificationPage = () => {
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="instituteEmail">
-                  Institute Email {!idCardFile && !idCardPreview && "*"}
-                </Label>
-                <Input
-                  id="instituteEmail"
-                  type="email"
-                  value={formData.instituteEmail}
-                  onChange={(e) =>
-                    setFormData({ ...formData, instituteEmail: e.target.value })
-                  }
-                  placeholder="student@university.edu"
-                  disabled={!canSubmit}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Educational email (.edu or .ac domain) OR upload ID card below
-                </p>
+              {/* Institute Email with OTP Verification */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="instituteEmail">
+                    Institute Email {emailVerificationStep !== 'verified' && !idCardFile && !idCardPreview && "*"}
+                  </Label>
+                  {emailVerificationStep === 'verified' && (
+                    <Badge variant="default" className="flex items-center gap-1 bg-green-600">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                
+                {emailVerificationStep === 'verified' ? (
+                  <div className="p-3 border border-green-200 dark:border-green-800 rounded-md bg-green-50 dark:bg-green-950/20">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                        {formData.instituteEmail}
+                      </span>
+                    </div>
+                  </div>
+                ) : emailVerificationStep === 'sent' ? (
+                  <div className="space-y-4">
+                    <div className="p-3 border border-border rounded-md bg-muted/50">
+                      <p className="text-sm text-muted-foreground mb-1">Verification code sent to:</p>
+                      <p className="text-sm font-medium">{formData.instituteEmail}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Enter 6-digit code</Label>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <InputOTP
+                          maxLength={6}
+                          value={otpCode}
+                          onChange={setOtpCode}
+                          disabled={verifyingCode}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                        <Button
+                          onClick={handleVerifyCode}
+                          disabled={otpCode.length !== 6 || verifyingCode}
+                          className="sm:w-auto"
+                        >
+                          {verifyingCode ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Verifying...
+                            </>
+                          ) : (
+                            "Verify"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Code expires in: <span className="font-medium text-foreground">{getTimeRemaining()}</span>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleResendCode}
+                        disabled={resendCooldown > 0 || sendingCode}
+                        className="gap-1"
+                      >
+                        <RefreshCw className={cn("h-3 w-3", sendingCode && "animate-spin")} />
+                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                      </Button>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEmailVerificationStep('input');
+                        setOtpCode("");
+                        setCodeExpiresAt(null);
+                      }}
+                    >
+                      Change email
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        id="instituteEmail"
+                        type="email"
+                        value={formData.instituteEmail}
+                        onChange={(e) =>
+                          setFormData({ ...formData, instituteEmail: e.target.value })
+                        }
+                        placeholder="student@university.edu"
+                        disabled={!canSubmit}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={handleSendVerificationCode}
+                        disabled={!formData.instituteEmail || !validateEmail(formData.instituteEmail) || sendingCode || !canSubmit}
+                      >
+                        {sendingCode ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Send Code
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Enter your educational email (.edu or .ac domain) and verify it with a code
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="idCard">
-                  Student ID Card {!formData.instituteEmail && "*"}
+                  Student ID Card {emailVerificationStep !== 'verified' && !formData.instituteEmail && "*"}
                 </Label>
                 <div className="space-y-3">
                   {idCardPreview ? (
@@ -654,7 +909,7 @@ const StudentVerificationPage = () => {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    If you don't have an educational email, upload a clear photo of your student ID card (JPG, PNG, or WEBP, max 5MB)
+                    If you can't verify via email, upload a clear photo of your student ID card (JPG, PNG, or WEBP, max 5MB)
                   </p>
                 </div>
               </div>
@@ -676,7 +931,7 @@ const StudentVerificationPage = () => {
             {canSubmit && (
               <Button
                 onClick={handleSubmit}
-                disabled={loading || uploading}
+                disabled={loading || uploading || (emailVerificationStep !== 'verified' && !idCardFile && !idCardPreview)}
                 className="w-full"
               >
                 {uploading
