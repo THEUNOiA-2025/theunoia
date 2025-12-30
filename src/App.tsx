@@ -12,6 +12,10 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import FeaturesPage from "./pages/FeaturesPage";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import FAQPage from "./pages/FAQPage";
+import ContactPage from "./pages/ContactPage";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -43,6 +47,10 @@ const App = () => (
           <GlobalNotificationProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               
