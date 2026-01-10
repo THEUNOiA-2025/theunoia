@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -20,19 +21,18 @@ const Footer = () => {
           </div>
           <nav className="flex flex-col text-[17px] text-[rgba(248,244,241,1)] leading-[1.8]">
             <div className="font-medium leading-loose">Quick Links</div>
-            <a href="#" className="mt-[33px] hover:text-white transition-colors">Home</a>
-            <a href="#" className="mt-[33px] hover:text-white transition-colors">Pricing</a>
-            <a href="#" className="mt-[30px] hover:text-white transition-colors">Changelog</a>
-            <a href="#" className="text-base leading-loose self-stretch mt-[31px] hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="leading-loose mt-[30px] hover:text-white transition-colors">404 Page</a>
+            <Link to="/" className="mt-[33px] hover:text-white transition-colors">Home</Link>
+            <Link to="/features" className="mt-[33px] hover:text-white transition-colors">Features</Link>
+            <Link to="/how-it-works" className="mt-[30px] hover:text-white transition-colors">How It Works</Link>
+            <Link to="/terms-and-conditions" className="text-base leading-loose self-stretch mt-[31px] hover:text-white transition-colors">Terms & Conditions</Link>
+            <Link to="/faq" className="leading-loose mt-[30px] hover:text-white transition-colors">FAQ</Link>
           </nav>
           <nav className="flex flex-col text-[17px] text-[rgba(248,244,241,1)]">
             <div className="font-medium leading-loose">Company</div>
-            <a href="#" className="leading-loose mt-[31px] hover:text-white transition-colors">About Us</a>
-            <a href="#" className="leading-loose self-stretch mt-[34px] max-md:mr-2 hover:text-white transition-colors">Contact Us</a>
-            <a href="#" className="text-base leading-loose self-stretch mt-[35px] hover:text-white transition-colors">Testimonials</a>
-            <a href="#" className="text-base leading-loose mt-[35px] hover:text-white transition-colors">Features</a>
-            <a href="#" className="leading-loose mt-[33px] hover:text-white transition-colors">Blog</a>
+            <Link to="/contact" className="leading-loose mt-[31px] hover:text-white transition-colors">Contact Us</Link>
+            <Link to="/blog" className="leading-loose self-stretch mt-[34px] max-md:mr-2 hover:text-white transition-colors">Blog</Link>
+            <Link to="/projects" className="text-base leading-loose self-stretch mt-[35px] hover:text-white transition-colors">Projects</Link>
+            <a href="mailto:support@theunoia.com" className="text-base leading-loose mt-[35px] hover:text-white transition-colors">support@theunoia.com</a>
           </nav>
           <div className="font-medium">
             <div className="text-[rgba(248,244,241,1)] text-[17px] leading-[31px]">
