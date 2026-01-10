@@ -16,6 +16,7 @@ import FeaturesPage from "./pages/FeaturesPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import FAQPage from "./pages/FAQPage";
 import ContactPage from "./pages/ContactPage";
+import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
               <Route path="/blog" element={
                 <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                   <BlogPage />
