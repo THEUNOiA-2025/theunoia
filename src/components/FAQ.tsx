@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const FAQ = () => {
-  const [openFaq, setOpenFaq] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const faqs = [
     {
@@ -9,7 +11,7 @@ const FAQ = () => {
       answer: "THEUNOiA is a task management platform designed for startups and growing teams. It helps you organize projects."
     },
     {
-      question: "Can I integrate THEUNOiA with other tools",
+      question: "Can I integrate THEUNOiA with other tools?",
       answer: "Yes, THEUNOiA integrates with popular tools like Slack, Google Drive, and more."
     },
     {
@@ -26,6 +28,10 @@ const FAQ = () => {
     }
   ];
 
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
   return (
     <section className="bg-white flex w-full flex-col items-center pt-[130px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="z-10 mb-[-193px] w-[1200px] max-w-full max-md:mb-2.5">
@@ -39,26 +45,46 @@ const FAQ = () => {
                     asked questions
                   </h2>
                   <p className="text-muted-foreground text-[17px] font-normal leading-[31px] mt-[30px] max-md:max-w-full">
-                    For any unanswered questions, reach out to our support team <br />
+                    For any unanswered questions, reach out to our support team <br className="max-md:hidden" />
                     via email. We'll respond as soon as possible to assist you.
                   </p>
                 </div>
               </div>
               <div className="w-6/12 ml-5 max-md:w-full max-md:ml-0">
-                <div className="flex grow flex-col items-stretch text-[17px] max-md:max-w-full max-md:mt-10">
+                <div className="flex flex-col items-stretch text-[17px] max-md:max-w-full max-md:mt-10 space-y-3">
                   {faqs.map((faq, index) => (
-                    <div key={index} className={`${index === 0 ? 'border' : ''} flex flex-col items-stretch ${index === 0 ? 'px-6 py-[31px] rounded-2xl border-border' : 'ml-6 mt-[17px]'} max-md:max-w-full ${index === 0 ? 'max-md:px-5' : 'max-md:ml-2.5'}`}>
-                      <button
-                        onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                        className="text-foreground font-bold leading-loose text-left hover:text-muted-foreground transition-colors"
-                      >
-                        {faq.question}
-                      </button>
-                      {openFaq === index && index === 0 && (
-                        <div className="text-muted-foreground font-normal leading-[31px] mt-[27px] max-md:max-w-full">
-                          {faq.answer}
-                        </div>
+                    <div 
+                      key={index} 
+                      className={cn(
+                        "border rounded-2xl border-border overflow-hidden transition-all duration-200",
+                        openFaq === index ? "bg-muted/30" : "bg-background"
                       )}
+                    >
+                      <button
+                        onClick={() => toggleFaq(index)}
+                        className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-muted/20 transition-colors"
+                        aria-expanded={openFaq === index}
+                      >
+                        <span className="text-foreground font-bold leading-relaxed pr-4">
+                          {faq.question}
+                        </span>
+                        <ChevronDown 
+                          className={cn(
+                            "w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-200",
+                            openFaq === index && "rotate-180"
+                          )}
+                        />
+                      </button>
+                      <div 
+                        className={cn(
+                          "overflow-hidden transition-all duration-200",
+                          openFaq === index ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                        )}
+                      >
+                        <p className="text-muted-foreground font-normal leading-[31px] px-6 pb-5">
+                          {faq.answer}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
