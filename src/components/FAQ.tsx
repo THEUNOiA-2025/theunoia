@@ -33,8 +33,8 @@ const FAQ = () => {
   };
 
   return (
-    <section className="bg-white flex w-full flex-col items-center pt-[130px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
-      <div className="z-10 mb-[-193px] w-[1200px] max-w-full max-md:mb-2.5">
+    <section className="bg-white flex w-full flex-col items-center pt-[130px] pb-20 px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
+      <div className="w-[1200px] max-w-full">
         <div className="flex w-full flex-col items-stretch px-10 max-md:max-w-full max-md:px-5">
           <div className="max-md:max-w-full">
             <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
