@@ -300,21 +300,16 @@ const ProfilePage = () => {
   return (
     <main className="flex-1 p-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Profile Header Card - Colorful */}
+          {/* Profile Header Card - Clean Style */}
           <Card className="rounded-3xl border overflow-hidden">
-            {/* Gradient Banner */}
-            <div className="h-32 bg-gradient-to-r from-primary via-accent-purple to-accent-blue relative">
-              <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-6 right-16 w-12 h-12 bg-white/10 rounded-full blur-xl" />
-                <div className="absolute bottom-4 left-1/4 w-10 h-10 bg-secondary/20 rounded-full blur-lg" />
-              </div>
-            </div>
+            {/* Thin accent line at top */}
+            <div className="h-1 bg-gradient-to-r from-primary via-accent-purple to-accent-blue" />
             
-            <CardContent className="p-8 pt-0 relative">
-              <div className="flex items-start gap-6 -mt-16">
+            <CardContent className="p-8">
+              <div className="flex items-start gap-6">
                 {/* Profile Picture */}
                 <div className="relative group">
-                  <Avatar className="h-32 w-32 border-4 border-background">
+                  <Avatar className="h-28 w-28 border-4 border-primary/20 ring-4 ring-primary/10">
                     <AvatarImage src={profile.profilePictureUrl} />
                     <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent-purple text-white">
                       {profile.firstName[0]}
@@ -343,7 +338,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* User Info */}
-                <div className="flex-1 pt-16">
+                <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div>
                       <h1 className="text-3xl font-bold text-foreground">
