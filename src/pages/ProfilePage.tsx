@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus, Edit } from "lucide-react";
+import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus, Edit, GraduationCap, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
@@ -344,8 +344,9 @@ const ProfilePage = () => {
                       <h1 className="text-3xl font-bold text-foreground">
                         {profile.firstName} {profile.lastName}
                       </h1>
-                      <Badge className="mt-2 bg-gradient-to-r from-primary to-accent-purple text-white border-0 px-3 py-1">
-                        🎓 {profile.userType === "student"
+                      <Badge className="mt-2 bg-gradient-to-r from-primary to-accent-purple text-white border-0 px-3 py-1 flex items-center gap-1.5 w-fit">
+                        <GraduationCap className="h-4 w-4" />
+                        {profile.userType === "student"
                           ? "Student Freelancer"
                           : "Freelancer"}
                       </Badge>
@@ -367,7 +368,9 @@ const ProfilePage = () => {
                       )}
                       {verification?.institute_name && (
                         <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-lg bg-green/20 flex items-center justify-center">📚</span>
+                          <span className="w-6 h-6 rounded-lg bg-green/20 flex items-center justify-center">
+                            <Building2 className="h-3.5 w-3.5 text-green-600" />
+                          </span>
                           {verification.institute_name}
                         </p>
                       )}
