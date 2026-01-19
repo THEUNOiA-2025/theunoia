@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 interface AgreementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  type: "client" | "freelancer";
+  type: "client" | "freelancer" | "terms";
 }
 
 const clientAgreement = `
@@ -161,9 +161,173 @@ By checking the agreement checkbox while placing a bid, the Freelancer confirms 
 **Contact:** official@theunoia.com | +91 6372414583
 `;
 
+const termsConditions = `
+# TERMS & CONDITIONS
+
+## M/S THEUNOiA LLP
+
+Last Edited Date: 31.12.2025
+
+## 1. Introduction & Legal Scope
+
+These Terms & Conditions ("Terms") govern access to and use of the THEUNOiA platform ("Platform"), operated by M/S THEUNOiA LLP, a limited liability partnership incorporated under Indian law.
+
+By accessing, registering, or using the Platform, you agree to be legally bound by these Terms, the Privacy Policy, and all applicable laws including but not limited to:
+
+- Digital Personal Data Protection Act, 2023
+- Information Technology Act, 2000
+- Consumer Protection Act, 2019
+- Copyright Act, 1957
+- Arbitration and Conciliation Act, 1996
+
+If you do not agree, you must discontinue use of the Platform.
+
+## 2. Definitions
+
+- Platform – THEUNOiA web and mobile application
+- User – Any registered individual or entity
+- Buyer / Business Owner – User purchasing services
+- Seller / Student Freelancer – User providing services
+- Contract – Fixed-price service agreement accepted on the Platform
+
+## 3. Platform Role (Marketplace Disclaimer)
+
+THEUNOiA acts solely as a technology intermediary and marketplace facilitator.
+
+- THEUNOiA is not an employer, agent, partner, or guarantor
+- THEUNOiA is not a party to contracts between Buyers and Freelancers
+- All obligations, deliverables, and liabilities rest solely between users
+
+## 4. Eligibility & Account Responsibility
+
+- Users must be 18 years or older
+- Users under 18 require verifiable parental consent as per DPDP Act, 2023
+- Users must provide accurate, current information
+- Users are responsible for maintaining account security
+
+Fraud, chargebacks, or misrepresentation may result in suspension or termination.
+
+## 5. Contract Model
+
+- Only fixed-price contracts are supported
+- Hourly billing and time tracking are not supported
+- Contracts become binding upon Buyer acceptance and payment
+
+## 6. Payment Structure & Platform Fees
+
+### 6.1 Buyer Payment on Acceptance
+
+Upon accepting a Freelancer's proposal, the Buyer must pay 100% of the contract value.
+
+### 6.2 Platform-Held Funds (Escrow-Style)
+
+- All payments are held securely by the Platform
+- THEUNOiA is not a bank
+- Funds are held only to facilitate secure transactions
+
+### 6.3 Freelancer Payout & Commission
+
+Upon successful completion and approval, payouts are processed.
+
+### 6.4 Payout Timeline
+
+Payouts are released 2–5 working days after work completion confirmation and successful Buyer payment.
+
+Delays due to banks, gateways, holidays, or disputes are not attributable to THEUNOiA.
+
+## 7. Payment Gateway & Processing
+
+- Payments are processed exclusively via Razorpay
+- Supported methods include UPI, cards, wallets, net banking
+- THEUNOiA does not store sensitive payment data
+
+## 8. Non-Circumvention & Off-Platform Engagement
+
+Users shall not bypass the Platform. Buyers and Freelancers must not:
+
+- Engage off-platform with the same party introduced via THEUNOiA
+- Exchange contact details for external work
+- Avoid platform fees
+
+This restriction applies during the engagement and for 12 months thereafter.
+
+Violations may result in account termination, forfeiture of pending payouts, recovery of fees, and legal action.
+
+## 9. Refund Policy & Dispute Resolution
+
+### 9.1 Grounds for Refund
+
+Refunds may be requested if work is incomplete, deliverables do not meet agreed scope, deadlines are missed without approval, or quality is materially deficient.
+
+### 9.2 Dispute Resolution Committee (DRC)
+
+All disputes shall be reviewed by the DRC.
+
+### 9.3 Refund Rules
+
+- Valid Buyer claims → partial or full refund
+- Unreasonable Buyer rejection → payout may be released to Freelancer
+
+### 9.4 Refund Time Window
+
+Disputes must be raised within 15 days of final delivery or contract end.
+
+## 10. Taxes, GST & TDS
+
+- All transactions are in INR
+- GST applies to Platform commission fees
+- Buyers may be responsible for TDS compliance
+- THEUNOiA is not liable for user tax obligations
+
+## 11. Intellectual Property
+
+- Users retain ownership of their content
+- Users grant THEUNOiA a worldwide, royalty-free license to host, display, and promote content
+- Plagiarism or infringement may result in termination and legal action
+
+## 12. Community Guidelines
+
+Users must communicate respectfully, avoid harassment, hate speech, or abuse, and follow Indian IT laws. Violations may lead to warnings, suspension, or termination.
+
+## 13. Service Availability
+
+THEUNOiA does not guarantee uninterrupted availability. Downtime may occur due to maintenance, technical failures, or force majeure events.
+
+## 14. Limitation of Liability
+
+To the maximum extent permitted by law, THEUNOiA is not liable for indirect or consequential damages. Total liability shall not exceed Platform fees paid in the last 6 months.
+
+## 15. Indemnification
+
+Users agree to indemnify and hold harmless THEUNOiA against contract breaches, user disputes, legal violations, and IP infringement claims.
+
+## 16. Arbitration & Governing Law
+
+- Parties agree to mediation → arbitration before litigation
+- Arbitration under Arbitration and Conciliation Act, 1996
+- Seat: Maharashtra
+- Governing law: Indian Law
+
+## 17. Amendments & Final Provisions
+
+THEUNOiA may update these Terms at any time. Continued use of the Platform constitutes acceptance of revised Terms.
+
+## 18. Contact Details
+
+M/S THEUNOiA LLP
+C/O Nilkanth, Laxmi Nagar
+Chandrapur, Maharashtra – 442403, India
+
+📧 support@theunoia.com
+
+---
+
+**Contact:** official@theunoia.com | +91 6372414583
+`;
+
 export function AgreementDialog({ open, onOpenChange, type }: AgreementDialogProps) {
-  const content = type === "client" ? clientAgreement : freelancerAgreement;
-  const title = type === "client" ? "Client Service Agreement" : "Freelancer Agreement";
+  const content = type === "client" ? clientAgreement : type === "freelancer" ? freelancerAgreement : termsConditions;
+  const title = type === "client" ? "Client Service Agreement" : type === "freelancer" ? "Freelancer Agreement" : "Terms & Conditions";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

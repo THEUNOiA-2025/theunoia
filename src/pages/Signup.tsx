@@ -11,6 +11,9 @@ import slide2 from '@/assets/auth-slide-2.png';
 import slide3 from '@/assets/auth-slide-3.png';
 import theunoiaLogo from '@/assets/theunoia-logo.png';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FileText } from 'lucide-react';
+import { AgreementDialog } from '@/components/AgreementDialog';
 
 const signupSchema = z.object({
   firstName: z.string().trim().min(2, 'First name must be at least 2 characters').max(50),
@@ -30,6 +33,8 @@ const Signup = () => {
   const [userType, setUserType] = useState<'student' | 'non-student'>('student');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signUp, user } = useAuth();
@@ -226,20 +231,48 @@ const Signup = () => {
                       <div className="text-sm text-muted-foreground">Post projects and hire freelancers only</div>
                     </Label>
                   </div>
-                </RadioGroup>
+              </RadioGroup>
               </div>
 
-              <Button type="submit" className="w-full h-11 text-base font-bold rounded-full" disabled={loading}>
+              <div className="flex items-start space-x-3 p-4 border rounded-lg bg-muted/30">
+                <Checkbox
+                  id="terms"
+                  checked={termsAccepted}
+                  onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
+                    I have read and agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => setTermsDialogOpen(true)}
+                      className="text-primary underline underline-offset-4 hover:text-primary/80 inline-flex items-center gap-1"
+                    >
+                      <FileText className="h-3 w-3" />
+                      Terms & Conditions
+                    </button>
+                  </Label>
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-11 text-base font-bold rounded-full" 
+                disabled={loading || !termsAccepted}
+              >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
 
+            <AgreementDialog
+              open={termsDialogOpen}
+              onOpenChange={setTermsDialogOpen}
+              type="terms"
+            />
+
             <p className="text-center text-sm text-muted-foreground">
-              By clicking continue, you agree to our{' '}
-              <Link to="/terms" className="underline underline-offset-4 hover:text-foreground">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
+              By signing up, you also agree to our{' '}
               <Link to="/privacy" className="underline underline-offset-4 hover:text-foreground">
                 Privacy Policy
               </Link>
