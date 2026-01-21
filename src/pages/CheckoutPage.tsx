@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Shield, ArrowLeft, Info, FileText } from 'lucide-react';
+import { Shield, ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,7 +64,7 @@ const CheckoutPage = () => {
 
   if (!plan) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6">
         <p className="text-muted-foreground">Invalid plan selected</p>
         <Button onClick={() => navigate('/buy-credits')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -93,172 +93,170 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-secondary/30">
+    <div className="flex flex-col gap-6 p-6 md:p-8">
       {/* Header */}
-      <div className="bg-background border-b border-border px-6 py-4">
-        <Button variant="ghost" onClick={() => navigate('/buy-credits')} className="gap-2">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/buy-credits')} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Back to Plans
         </Button>
-      </div>
-
-      <div className="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full">
-        {/* Secure Payment Badge */}
-        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 mb-4">
+        <Badge className="bg-primary/10 text-primary border-primary/20">
           <Shield className="h-3 w-3 mr-1" />
           SECURE PAYMENT
         </Badge>
+      </div>
 
+      <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">Payment Summary</h1>
-        <p className="text-muted-foreground mb-8">Review details before final confirmation</p>
+        <p className="text-muted-foreground">Review details before final confirmation</p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Transaction Breakdown & Billing */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Transaction Breakdown */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="h-6 w-1 bg-primary rounded-full" />
-                  <h2 className="font-semibold text-foreground">Transaction Breakdown</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Transaction Breakdown & Billing */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Transaction Breakdown */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-6 w-1 bg-primary rounded-full" />
+                <h2 className="font-semibold text-foreground">Transaction Breakdown</h2>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Base Price ({plan.name} Plan)</span>
+                  <span className="font-medium text-foreground">₹{basePrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Platform Commission (2%)</span>
+                  <span className="font-medium text-foreground">₹{platformFee.toFixed(2)}</span>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Base Price ({plan.name} Plan)</span>
-                    <span className="font-medium text-foreground">₹{basePrice.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Platform Commission (2%)</span>
-                    <span className="font-medium text-foreground">₹{platformFee.toFixed(2)}</span>
-                  </div>
+                <Separator />
 
-                  <Separator />
-
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground uppercase tracking-wide">Taxable Amount</span>
-                    <span className="font-medium text-foreground">₹{taxableAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground uppercase tracking-wide">GST (18%)</span>
-                    <span className="font-medium text-foreground">₹{gst.toFixed(2)}</span>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex justify-between items-center bg-muted/50 -mx-6 px-6 py-4">
-                    <span className="font-semibold text-foreground uppercase tracking-wide">Total Payable</span>
-                    <span className="text-2xl font-bold text-foreground">₹{totalPayable.toFixed(2)}</span>
-                  </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground uppercase tracking-wide">Taxable Amount</span>
+                  <span className="font-medium text-foreground">₹{taxableAmount.toFixed(2)}</span>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Billing Information */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="h-6 w-1 bg-accent rounded-full" />
-                  <h2 className="font-semibold text-foreground">Billing Information</h2>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground uppercase tracking-wide">GST (18%)</span>
+                  <span className="font-medium text-foreground">₹{gst.toFixed(2)}</span>
                 </div>
 
-                {profile ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Account Name</p>
-                      <p className="font-medium text-foreground">{profile.firstName} {profile.lastName}</p>
+                <Separator />
+
+                <div className="flex justify-between items-center bg-muted/50 -mx-6 px-6 py-4">
+                  <span className="font-semibold text-foreground uppercase tracking-wide">Total Payable</span>
+                  <span className="text-2xl font-bold text-foreground">₹{totalPayable.toFixed(2)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Billing Information */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-6 w-1 bg-accent rounded-full" />
+                <h2 className="font-semibold text-foreground">Billing Information</h2>
+              </div>
+
+              {profile ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Account Name</p>
+                    <p className="font-medium text-foreground">{profile.firstName} {profile.lastName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Email</p>
+                    <p className="font-medium text-foreground">{profile.email}</p>
+                  </div>
+                  {(profile.city || profile.pinCode) && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Location</p>
+                      <p className="font-medium text-foreground">
+                        {[profile.city, profile.pinCode].filter(Boolean).join(', ')}
+                        {profile.city || profile.pinCode ? ', India' : ''}
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Email</p>
-                      <p className="font-medium text-foreground">{profile.email}</p>
-                    </div>
-                    {(profile.city || profile.pinCode) && (
-                      <div className="md:col-span-2">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Location</p>
-                        <p className="font-medium text-foreground">
-                          {[profile.city, profile.pinCode].filter(Boolean).join(', ')}
-                          {profile.city || profile.pinCode ? ', India' : ''}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Loading billing information...</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Final Amount & Policy */}
-          <div className="space-y-6">
-            {/* Final Payment Amount */}
-            <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 border-primary/30">
-              <CardContent className="p-6 text-center">
-                <p className="text-xs text-primary uppercase tracking-wide mb-2 font-medium">
-                  Final Payment Amount
-                </p>
-                <div className="mb-2">
-                  <span className="text-4xl font-bold text-foreground">₹{Math.floor(totalPayable)}</span>
-                  <span className="text-xl text-muted-foreground">.{(totalPayable % 1).toFixed(2).substring(2)}</span>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {plan.name} Plan • {plan.credits} Credits
-                </p>
-
-                <Button 
-                  className="w-full mt-6" 
-                  size="lg"
-                  onClick={handleProceedToPayment}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Processing...' : 'Proceed to Payment'}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Payment Details & Policy */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-foreground text-sm">Payment Details & Policy</h3>
-                </div>
-
-                <div className="space-y-3 text-sm">
-                  <div className="flex gap-3">
-                    <Badge variant="outline" className="text-xs shrink-0">Refund</Badge>
-                    <p className="text-muted-foreground">
-                      Refunds are processed to the original payment method within 5-7 business days.
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Badge variant="outline" className="text-xs shrink-0">Note</Badge>
-                    <p className="text-muted-foreground">
-                      Platform commission is a service fee and is non-refundable.
-                    </p>
-                  </div>
-                </div>
-
-                <Separator className="my-4" />
-
-                <p className="text-xs text-muted-foreground">
-                  By proceeding, you agree to THEUNOiA's{' '}
-                  <Link to="/terms-and-conditions" className="text-primary hover:underline">Terms of Service</Link>
-                  {' '}and{' '}
-                  <Link to="/terms-and-conditions" className="text-primary hover:underline">Refund Policy</Link>.
-                  You will be redirected to a secure payment portal.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              ) : (
+                <p className="text-muted-foreground">Loading billing information...</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Footer Links */}
-        <div className="flex justify-center gap-8 mt-12 text-sm text-muted-foreground">
-          <Link to="/terms-and-conditions" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/terms-and-conditions" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/contact" className="hover:text-foreground transition-colors">Support</Link>
+        {/* Right Column - Final Amount & Policy */}
+        <div className="space-y-6">
+          {/* Final Payment Amount */}
+          <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 border-primary/30">
+            <CardContent className="p-6 text-center">
+              <p className="text-xs text-primary uppercase tracking-wide mb-2 font-medium">
+                Final Payment Amount
+              </p>
+              <div className="mb-2">
+                <span className="text-4xl font-bold text-foreground">₹{Math.floor(totalPayable)}</span>
+                <span className="text-xl text-muted-foreground">.{(totalPayable % 1).toFixed(2).substring(2)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {plan.name} Plan • {plan.credits} Credits
+              </p>
+
+              <Button 
+                className="w-full mt-6" 
+                size="lg"
+                onClick={handleProceedToPayment}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Proceed to Payment'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Payment Details & Policy */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <h3 className="font-semibold text-foreground text-sm">Payment Details & Policy</h3>
+              </div>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex gap-3">
+                  <Badge variant="outline" className="text-xs shrink-0">Refund</Badge>
+                  <p className="text-muted-foreground">
+                    Refunds are processed to the original payment method within 5-7 business days.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Badge variant="outline" className="text-xs shrink-0">Note</Badge>
+                  <p className="text-muted-foreground">
+                    Platform commission is a service fee and is non-refundable.
+                  </p>
+                </div>
+              </div>
+
+              <Separator className="my-4" />
+
+              <p className="text-xs text-muted-foreground">
+                By proceeding, you agree to THEUNOiA's{' '}
+                <Link to="/terms-and-conditions" className="text-primary hover:underline">Terms of Service</Link>
+                {' '}and{' '}
+                <Link to="/terms-and-conditions" className="text-primary hover:underline">Refund Policy</Link>.
+                You will be redirected to a secure payment portal.
+              </p>
+            </CardContent>
+          </Card>
         </div>
+      </div>
+
+      {/* Footer Links */}
+      <div className="flex justify-center gap-8 mt-8 text-sm text-muted-foreground">
+        <Link to="/terms-and-conditions" className="hover:text-foreground transition-colors">Terms</Link>
+        <Link to="/terms-and-conditions" className="hover:text-foreground transition-colors">Privacy</Link>
+        <Link to="/contact" className="hover:text-foreground transition-colors">Support</Link>
       </div>
     </div>
   );
