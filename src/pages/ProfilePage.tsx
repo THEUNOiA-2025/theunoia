@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus, Edit, GraduationCap, Building2 } from "lucide-react";
+import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus, Edit, GraduationCap, Building2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
@@ -27,6 +27,7 @@ const ProfilePage = () => {
     bio: "",
     phone: "",
     website: "",
+    billingAddress: "",
   });
   const [verification, setVerification] = useState<any>(null);
   const [skills, setSkills] = useState<string[]>([]);
@@ -72,6 +73,7 @@ const ProfilePage = () => {
           bio: data.bio || "",
           phone: data.phone || "",
           website: data.website || "",
+          billingAddress: data.billing_address || "",
         });
       }
     } catch (error) {
@@ -525,7 +527,13 @@ const ProfilePage = () => {
                       </a>
                     </div>
                   )}
-                  {!profile.phone && !profile.website && (
+                  {profile.billingAddress && (
+                    <div className="flex items-start gap-3 p-2 rounded-lg bg-white/50">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <span className="text-sm">{profile.billingAddress}</span>
+                    </div>
+                  )}
+                  {!profile.phone && !profile.website && !profile.billingAddress && (
                     <p className="text-sm text-muted-foreground">
                       No additional contact info
                     </p>

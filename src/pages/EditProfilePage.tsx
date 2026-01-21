@@ -26,6 +26,7 @@ const EditProfilePage = () => {
     bio: "",
     phone: "",
     website: "",
+    billingAddress: "",
   });
 
   useEffect(() => {
@@ -58,6 +59,7 @@ const EditProfilePage = () => {
           bio: data.bio || "",
           phone: data.phone || "",
           website: data.website || "",
+          billingAddress: data.billing_address || "",
         });
       }
     } catch (error) {
@@ -84,6 +86,7 @@ const EditProfilePage = () => {
           bio: profile.bio,
           phone: profile.phone,
           website: profile.website,
+          billing_address: profile.billingAddress,
         })
         .eq("user_id", user.id);
 
@@ -305,6 +308,19 @@ const EditProfilePage = () => {
                   setProfile({ ...profile, website: e.target.value })
                 }
                 placeholder="https://yourwebsite.com"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="billingAddress">Billing Address</Label>
+              <Textarea
+                id="billingAddress"
+                value={profile.billingAddress}
+                onChange={(e) =>
+                  setProfile({ ...profile, billingAddress: e.target.value })
+                }
+                placeholder="Enter your billing address"
+                rows={3}
               />
             </div>
 

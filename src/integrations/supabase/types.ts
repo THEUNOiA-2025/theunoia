@@ -444,6 +444,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          billing_address: string | null
           bio: string | null
           city: string | null
           created_at: string | null
@@ -463,6 +464,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          billing_address?: string | null
           bio?: string | null
           city?: string | null
           created_at?: string | null
@@ -482,6 +484,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          billing_address?: string | null
           bio?: string | null
           city?: string | null
           created_at?: string | null
