@@ -192,16 +192,16 @@ const CheckoutPage = () => {
           {/* Right Column - Final Amount & Policy */}
           <div className="space-y-6">
             {/* Final Payment Amount */}
-            <Card className="bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-800">
+            <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 border-primary/30">
               <CardContent className="p-6 text-center">
-                <p className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-2">
+                <p className="text-xs text-primary uppercase tracking-wide mb-2 font-medium">
                   Final Payment Amount
                 </p>
                 <div className="mb-2">
-                  <span className="text-4xl font-bold text-amber-900 dark:text-amber-100">₹{Math.floor(totalPayable)}</span>
-                  <span className="text-xl text-amber-700 dark:text-amber-300">.{(totalPayable % 1).toFixed(2).substring(2)}</span>
+                  <span className="text-4xl font-bold text-foreground">₹{Math.floor(totalPayable)}</span>
+                  <span className="text-xl text-muted-foreground">.{(totalPayable % 1).toFixed(2).substring(2)}</span>
                 </div>
-                <p className="text-sm text-amber-600 dark:text-amber-400">
+                <p className="text-sm text-muted-foreground">
                   {plan.name} Plan • {plan.credits} Credits
                 </p>
 
