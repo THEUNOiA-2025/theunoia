@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { recordActivity } from "@/utils/dailyStreak";
 import { CollaborationDialog } from "./collaboration/CollaborationDialog";
+import { ProjectTrackingBoard } from "./ProjectTracking/ProjectTrackingBoard";
 import projectVideo from "@/assets/Video/New Project 29 [4ED1F2C].mp4";
 
 interface Project {
@@ -321,36 +322,38 @@ const ProjectDetailPage = () => {
           </button>
         </div>
 
-        {/* Project Header */}
-        <div className="mb-7">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4.5">
-            <div className="flex-1 max-w-3xl">
-              <div className="flex gap-1.5 mb-3.5">
-                <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
-                  <span className="size-1.5 rounded-full bg-[#145214]"></span> {project.status === 'open' ? 'Active Project' : project.status === 'in_progress' ? 'In Progress' : 'Completed'}
-                </span>
-                {project.category && (
-                  <span className="px-2.5 py-0.5 bg-secondary-yellow text-[#73480d] text-[9px] font-extrabold uppercase tracking-widest rounded-full">
-                    {project.category}
+        {/* Project Header - Only show in Overview tab */}
+        {activeTab === 'overview' && (
+          <div className="mb-7">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4.5">
+              <div className="flex-1 max-w-3xl">
+                <div className="flex gap-1.5 mb-3.5">
+                  <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
+                    <span className="size-1.5 rounded-full bg-[#145214]"></span> {project.status === 'open' ? 'Active Project' : project.status === 'in_progress' ? 'In Progress' : 'Completed'}
                   </span>
-                )}
+                  {project.category && (
+                    <span className="px-2.5 py-0.5 bg-secondary-yellow text-[#73480d] text-[9px] font-extrabold uppercase tracking-widest rounded-full">
+                      {project.category}
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 leading-[1.15] mb-3.5">
+                  {project.title}
+                </h1>
+                <p className="text-slate-900 font-bold flex flex-wrap items-center gap-3.5 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-primary-purple" />
+                    Posted {timeAgo}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-primary-purple" />
+                    Remote / Global
+                  </span>
+                </p>
               </div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 leading-[1.15] mb-3.5">
-                {project.title}
-              </h1>
-              <p className="text-slate-900 font-bold flex flex-wrap items-center gap-3.5 text-xs">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-primary-purple" />
-                  Posted {timeAgo}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-primary-purple" />
-                  Remote / Global
-                </span>
-              </p>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Tabs and Action Buttons */}
         <div className="mb-7 flex flex-col md:flex-row md:items-center justify-between gap-3.5">
@@ -376,7 +379,7 @@ const ProjectDetailPage = () => {
               Project Tracking
             </button>
           </div>
-          {!isProjectOwner && (
+          {activeTab === 'overview' && !isProjectOwner && (
             <button
               onClick={() => setCollaborationDialogOpen(true)}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary-yellow text-[#73480d] text-xs font-bold rounded-xl shadow-sm hover:shadow-md transition-all"
@@ -388,10 +391,16 @@ const ProjectDetailPage = () => {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
-          <div className="lg:col-span-8 flex flex-col gap-7">
-            {/* Project Visual */}
-            <div className="flex flex-col gap-5">
+        {activeTab === 'tracking' ? (
+          <ProjectTrackingBoard 
+            projectId={project?.id || ''} 
+            projectCategory={project?.category || null}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
+            <div className="lg:col-span-8 flex flex-col gap-7">
+              {/* Project Visual */}
+              <div className="flex flex-col gap-5">
               <div className="relative w-full max-w-[90%] aspect-[16/9] rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50 group">
                 <video
                   src={projectVideo}
@@ -533,10 +542,10 @@ const ProjectDetailPage = () => {
                 </div>
               )}
             </section>
-          </div>
+            </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-4 space-y-7">
+            {/* Sidebar */}
+            <div className="lg:col-span-4 space-y-7">
             <div className="sticky top-24 space-y-5">
               {/* Place Bid Button */}
               {canPlaceBid && !userAlreadyBid && creditBalance >= 10 && (
@@ -682,6 +691,7 @@ const ProjectDetailPage = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       <AgreementDialog 
