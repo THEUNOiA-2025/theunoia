@@ -265,6 +265,10 @@ const Signup = () => {
               open={termsDialogOpen}
               onOpenChange={setTermsDialogOpen}
               type="terms"
+              onAllSectionsAccepted={() => {
+                setTermsAccepted(true);
+                setTermsDialogOpen(false);
+              }}
             />
 
             <p className="text-center text-sm text-muted-foreground">

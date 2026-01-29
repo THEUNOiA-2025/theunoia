@@ -13,6 +13,8 @@ interface AgreementDialogProps {
   type: "client" | "freelancer" | "terms";
   onAccept?: () => void;
   showAcceptButton?: boolean;
+  /** When provided for type="terms", user must accept each section in order; when all accepted, this is called and the outside checkbox can be checked */
+  onAllSectionsAccepted?: () => void;
 }
 
 interface Section {
@@ -22,10 +24,29 @@ interface Section {
   content: string[];
 }
 
+/** Privacy Policy – DigiLocker & Aadhaar Verification (exact content, do not modify) */
 const getTermsSections = (): Section[] => [
   {
-    id: "introduction",
+    id: "digilocker-privacy",
     number: "1",
+    title: "Privacy Policy – DigiLocker & Aadhaar Verification",
+    content: [
+      "Purpose of Aadhaar Verification\nTHEUNOiA uses DigiLocker's consent-based Aadhaar verification solely to prevent fake, duplicate, or impersonated student accounts.",
+      "Use of DigiLocker Services\nVerification is initiated only by the user after explicit consent. No unauthorized access is performed.",
+      "Data Accessed During Verification\nTHEUNOiA does not access or store Aadhaar numbers, documents, PDFs, XMLs, biometrics, or sensitive personal data.",
+      "Duplicate Account Prevention\nA non-reversible technical identifier provided by DigiLocker may be stored to ensure one person maintains only one account.",
+      "Data Storage & Retention\nOnly verification status, timestamp, and technical identifier are retained for compliance and audit purposes.",
+      "User Consent\nVerification proceeds only after explicit user consent via DigiLocker.",
+      "Data Sharing\nTHEUNOiA does not sell, rent, or share Aadhaar-related data with third parties.",
+      "Security Measures\nAll interactions occur through secure backend systems using HTTPS and access controls.",
+      "Regulatory Compliance\nTHEUNOiA complies with DigiLocker guidelines and Indian IT laws.",
+      "User Rights\nUsers may withdraw consent or request deletion where legally permissible.",
+      "Contact support@theunoia.com"
+    ]
+  },
+  {
+    id: "introduction",
+    number: "2",
     title: "Introduction & Legal Scope",
     content: [
       "These Terms & Conditions (\"Terms\") constitute a legally binding agreement between the user (\"User\") and M/S THEUNOiA LLP, a limited liability partnership duly incorporated and existing under the laws of India (\"THEUNOiA\"). These Terms govern the User's access to, registration on, and use of the THEUNOiA digital marketplace, including its website, mobile applications, dashboards, communication tools, and all related services (collectively, the \"Platform\").",
@@ -37,7 +58,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "definitions",
-    number: "2",
+    number: "3",
     title: "Definitions",
     content: [
       "For the purposes of these Terms & Conditions, unless the context otherwise requires:",
@@ -47,7 +68,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "platform-role",
-    number: "3",
+    number: "4",
     title: "Platform Role",
     content: [
       "THEUNOiA operates solely as an online technology platform and marketplace intermediary that facilitates interactions between Buyers and Sellers/Student Freelancers for the purpose of discovering, communicating, and entering into independent service contracts.",
@@ -57,7 +78,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "eligibility",
-    number: "4",
+    number: "5",
     title: "Eligibility & Account",
     content: [
       "Access to and use of the Platform is permitted only to individuals and entities who are legally competent to enter into a binding contract under the Indian Contract Act, 1872. By registering on or using the Platform, the User represents and warrants that they are at least eighteen (18) years of age.",
@@ -67,7 +88,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "contract-model",
-    number: "5",
+    number: "6",
     title: "Contract Model",
     content: [
       "THEUNOiA facilitates only fixed-price service contracts between Buyers and Sellers/Student Freelancers. Under this model, the total contract consideration, scope of work, deliverables, milestones (if any), and timelines must be clearly defined and mutually agreed upon prior to contract acceptance.",
@@ -77,7 +98,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "payment",
-    number: "6",
+    number: "7",
     title: "Payment & Fees",
     content: [
       "Upon acceptance of a Seller's or Student Freelancer's proposal, the Buyer is required to pay one hundred percent (100%) of the agreed fixed contract value in advance, along with a Buyer Commission Fee of three percent (3%) charged by THEUNOiA for platform facilitation services.",
@@ -87,7 +108,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "payment-gateway",
-    number: "7",
+    number: "8",
     title: "Payment Gateway",
     content: [
       "All payments on the Platform shall be processed exclusively through THEUNOiA's authorized third-party payment gateway, currently Razorpay, using supported payment methods including UPI, debit cards, credit cards, wallets, and net banking.",
@@ -97,7 +118,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "non-circumvention",
-    number: "8",
+    number: "9",
     title: "Non-Circumvention",
     content: [
       "Users agree not to circumvent, bypass, or attempt to bypass the Platform by engaging in off-platform transactions with any Buyer or Seller first introduced through THEUNOiA, including exchanging contact details, entering into external agreements, or avoiding Platform fees.",
@@ -107,7 +128,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "refund",
-    number: "9",
+    number: "10",
     title: "Refund & Disputes",
     content: [
       "A Buyer may request a refund only in cases where the contracted work is materially incomplete, does not conform to the agreed scope of work, is delivered after the agreed timeline without approved extension, or is materially deficient in quality.",
@@ -117,7 +138,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "taxes",
-    number: "10",
+    number: "11",
     title: "Taxes & GST",
     content: [
       "All transactions conducted on the Platform shall be denominated in Indian Rupees (INR). Goods and Services Tax (GST) or any other applicable indirect taxes shall be levied on THEUNOiA's commission fees in accordance with prevailing tax laws.",
@@ -126,7 +147,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "ip",
-    number: "11",
+    number: "12",
     title: "Intellectual Property",
     content: [
       "Users retain ownership of all content, materials, and intellectual property they create or upload to the Platform. By using the Platform, Users grant THEUNOiA a non-exclusive, worldwide, royalty-free license to host, display, reproduce, and promote such content solely for the purposes of operating, marketing, and improving the Platform.",
@@ -135,7 +156,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "community",
-    number: "12",
+    number: "13",
     title: "Community Guidelines",
     content: [
       "Users agree to communicate and conduct themselves in a respectful, lawful, and professional manner while using the Platform.",
@@ -145,7 +166,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "availability",
-    number: "13",
+    number: "14",
     title: "Service Availability",
     content: [
       "THEUNOiA strives to ensure continuous availability of the Platform but does not guarantee uninterrupted or error-free operation.",
@@ -154,7 +175,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "liability",
-    number: "14",
+    number: "15",
     title: "Limitation of Liability",
     content: [
       "To the maximum extent permitted under applicable law, THEUNOiA shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or in connection with the use of the Platform or services contracted between Users.",
@@ -163,7 +184,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "indemnification",
-    number: "15",
+    number: "16",
     title: "Indemnification",
     content: [
       "Users agree to indemnify, defend, and hold harmless THEUNOiA, its partners, officers, employees, and affiliates from and against any claims, damages, losses, liabilities, costs, or expenses arising out of or related to breach of these Terms, violation of applicable laws, disputes between Users, misuse of the Platform, or infringement of intellectual property or third-party rights."
@@ -171,7 +192,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "arbitration",
-    number: "16",
+    number: "17",
     title: "Arbitration & Law",
     content: [
       "In the event of any dispute, the parties agree to first attempt amicable resolution through mediation, failing which the dispute shall be referred to and finally resolved by arbitration in accordance with the Arbitration and Conciliation Act, 1996.",
@@ -180,7 +201,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "amendments",
-    number: "17",
+    number: "18",
     title: "Amendments",
     content: [
       "THEUNOiA reserves the right to modify, amend, or update these Terms & Conditions at any time to reflect changes in law, business practices, or Platform functionality.",
@@ -189,7 +210,7 @@ const getTermsSections = (): Section[] => [
   },
   {
     id: "contact",
-    number: "18",
+    number: "19",
     title: "Contact Details",
     content: [
       "For any queries, grievances, or legal notices relating to these Terms or the use of the Platform, Users may contact:",
@@ -405,16 +426,30 @@ const getFreelancerSections = (): Section[] => [
   }
 ];
 
-export function AgreementDialog({ open, onOpenChange, type, onAccept, showAcceptButton = false }: AgreementDialogProps) {
+export function AgreementDialog({ open, onOpenChange, type, onAccept, showAcceptButton = false, onAllSectionsAccepted }: AgreementDialogProps) {
   const [activeSection, setActiveSection] = useState(0);
+  const [acceptedUpTo, setAcceptedUpTo] = useState(-1);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const sections = type === "terms" ? getTermsSections() : type === "client" ? getClientSections() : getFreelancerSections();
   const title = type === "client" ? "Client Service Agreement" : type === "freelancer" ? "Freelancer Agreement" : "Terms & Conditions";
   const effectiveDate = "January 20, 2026";
+  const isTermsSectionBySection = type === "terms" && typeof onAllSectionsAccepted === "function";
+
+  useEffect(() => {
+    if (open && isTermsSectionBySection) {
+      setActiveSection(0);
+      setAcceptedUpTo(-1);
+    }
+  }, [open, isTermsSectionBySection]);
 
   const scrollToSection = (index: number) => {
+    if (isTermsSectionBySection) {
+      setActiveSection(index);
+      if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+      return;
+    }
     const element = sectionRefs.current[index];
     if (element && scrollContainerRef.current) {
       const container = scrollContainerRef.current;
@@ -425,28 +460,31 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
   };
 
   useEffect(() => {
+    if (isTermsSectionBySection && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [activeSection, isTermsSectionBySection]);
+
+  useEffect(() => {
+    if (isTermsSectionBySection) return;
     const container = scrollContainerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
       const scrollTop = container.scrollTop;
       let current = 0;
-
       sectionRefs.current.forEach((ref, index) => {
         if (ref) {
           const offsetTop = ref.offsetTop - container.offsetTop - 100;
-          if (scrollTop >= offsetTop) {
-            current = index;
-          }
+          if (scrollTop >= offsetTop) current = index;
         }
       });
-
       setActiveSection(current);
     };
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [sections]);
+  }, [sections, isTermsSectionBySection]);
 
   const handleAccept = () => {
     if (onAccept) {
@@ -455,59 +493,71 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
     onOpenChange(false);
   };
 
+  const handleAcceptCurrentSection = () => {
+    setAcceptedUpTo(activeSection);
+    if (activeSection < sections.length - 1) {
+      const nextIndex = activeSection + 1;
+      scrollToSection(nextIndex);
+      setActiveSection(nextIndex);
+    } else {
+      onAllSectionsAccepted?.();
+      onOpenChange(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] p-0 gap-0 overflow-hidden bg-background">
         <div className="flex h-[85vh]">
           {/* Sidebar Navigation */}
           <div className="w-56 bg-muted/30 border-r border-border flex flex-col">
-            {/* Logo Area */}
-            <div className="p-4 border-b border-border">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-                U
-              </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-2 tracking-widest uppercase">
-                Navigation Hub
-              </p>
+            {/* THEUNOiA Logo */}
+            <div className="p-4 border-b border-border flex items-center justify-center">
+              <img src="/images/theunoia-logo.png" alt="THEUNOiA" className="h-10 object-contain" />
             </div>
             
             {/* Navigation Items */}
             <ScrollArea className="flex-1 py-2">
               <nav className="space-y-1 px-2">
-                {sections.map((section, index) => (
-                  <button
-                    key={section.id}
-                    onClick={() => scrollToSection(index)}
-                    className={cn(
-                      "w-full flex items-start gap-3 px-2 py-2.5 text-left rounded-lg transition-all",
-                      activeSection === index
-                        ? "bg-primary/10"
-                        : "hover:bg-muted/50"
-                    )}
-                  >
-                    <div className="relative flex items-center">
-                      {activeSection === index && (
-                        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary rounded-r" />
-                      )}
-                      <span className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium shrink-0",
+                {sections.map((section, index) => {
+                  const isAccepted = isTermsSectionBySection && acceptedUpTo >= index;
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => scrollToSection(index)}
+                      className={cn(
+                        "w-full flex items-start gap-3 px-2 py-2.5 text-left rounded-lg transition-all",
                         activeSection === index
-                          ? "bg-primary/20 text-primary"
-                          : "bg-muted text-muted-foreground"
+                          ? "bg-primary/10"
+                          : "hover:bg-muted/50"
+                      )}
+                    >
+                      <div className="relative flex items-center">
+                        {activeSection === index && (
+                          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary rounded-r" />
+                        )}
+                        <span className={cn(
+                          "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium shrink-0",
+                          activeSection === index
+                            ? "bg-primary/20 text-primary"
+                            : isAccepted
+                              ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                              : "bg-muted text-muted-foreground"
+                        )}>
+                          {isAccepted && isTermsSectionBySection ? "✓" : section.number}
+                        </span>
+                      </div>
+                      <span className={cn(
+                        "text-sm leading-tight pt-1",
+                        activeSection === index
+                          ? "text-foreground font-medium"
+                          : "text-muted-foreground"
                       )}>
-                        {section.number}
+                        {section.title}
                       </span>
-                    </div>
-                    <span className={cn(
-                      "text-sm leading-tight pt-1",
-                      activeSection === index
-                        ? "text-foreground font-medium"
-                        : "text-muted-foreground"
-                    )}>
-                      {section.title}
-                    </span>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </nav>
             </ScrollArea>
           </div>
@@ -522,59 +572,100 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
               </p>
             </div>
 
-            {/* Scrollable Content */}
-            <div 
+            {/* Scrollable Content: section-by-section = only current section (scroll within it); otherwise all sections */}
+            <div
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto px-8 py-6"
+              className={cn(
+                "flex-1 overflow-y-auto px-8 py-6 min-h-0",
+                isTermsSectionBySection && "flex flex-col"
+              )}
             >
-              {sections.map((section, index) => (
-                <div
-                  key={section.id}
-                  ref={(el) => (sectionRefs.current[index] = el)}
-                  className="mb-12"
-                >
-                  {/* Section Header */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-lg font-semibold text-secondary">
-                      {section.number.padStart(2, '0')}.
-                    </span>
-                    <h2 className="text-lg font-semibold text-foreground">
-                      {section.title}
-                    </h2>
-                    <div className="flex-1 h-px bg-gradient-to-r from-secondary/30 via-accent/30 to-transparent" />
-                  </div>
-
-                  {/* Section Content */}
-                  <div className="space-y-4 pl-10">
-                    {section.content.map((paragraph, pIndex) => (
-                      <p 
-                        key={pIndex} 
-                        className="text-muted-foreground leading-relaxed whitespace-pre-line"
-                      >
-                        {paragraph.split('**').map((part, i) => 
-                          i % 2 === 1 ? (
-                            <strong key={i} className="text-foreground font-semibold">{part}</strong>
-                          ) : (
-                            part
-                          )
-                        )}
-                      </p>
-                    ))}
-                  </div>
-
-                  {/* Decorative divider between sections */}
-                  {index < sections.length - 1 && (
-                    <div className="flex justify-center mt-8">
-                      <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-secondary/40 to-transparent rounded-full" />
+              {isTermsSectionBySection ? (
+                (() => {
+                  const section = sections[activeSection];
+                  if (!section) return null;
+                  return (
+                    <div className="mb-8">
+                      <div className="flex items-center gap-4 mb-4">
+                        <span className="text-lg font-semibold text-secondary">
+                          {section.number.padStart(2, '0')}.
+                        </span>
+                        <h2 className="text-lg font-semibold text-foreground">
+                          {section.title}
+                        </h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-secondary/30 via-accent/30 to-transparent" />
+                      </div>
+                      <div className="space-y-4 pl-10">
+                        {section.content.map((paragraph, pIndex) => (
+                          <p
+                            key={pIndex}
+                            className="text-muted-foreground leading-relaxed whitespace-pre-line"
+                          >
+                            {paragraph.split('**').map((part, i) =>
+                              i % 2 === 1 ? (
+                                <strong key={i} className="text-foreground font-semibold">{part}</strong>
+                              ) : (
+                                part
+                              )
+                            )}
+                          </p>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  );
+                })()
+              ) : (
+                sections.map((section, index) => (
+                  <div
+                    key={section.id}
+                    ref={(el) => (sectionRefs.current[index] = el)}
+                    className="mb-12"
+                  >
+                    <div className="flex items-center gap-4 mb-4">
+                      <span className="text-lg font-semibold text-secondary">
+                        {section.number.padStart(2, '0')}.
+                      </span>
+                      <h2 className="text-lg font-semibold text-foreground">
+                        {section.title}
+                      </h2>
+                      <div className="flex-1 h-px bg-gradient-to-r from-secondary/30 via-accent/30 to-transparent" />
+                    </div>
+                    <div className="space-y-4 pl-10">
+                      {section.content.map((paragraph, pIndex) => (
+                        <p
+                          key={pIndex}
+                          className="text-muted-foreground leading-relaxed whitespace-pre-line"
+                        >
+                          {paragraph.split('**').map((part, i) =>
+                            i % 2 === 1 ? (
+                              <strong key={i} className="text-foreground font-semibold">{part}</strong>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </p>
+                      ))}
+                    </div>
+                    {index < sections.length - 1 && (
+                      <div className="flex justify-center mt-8">
+                        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-secondary/40 to-transparent rounded-full" />
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Footer */}
             <div className="px-8 py-4 border-t border-border bg-muted/20 flex items-center justify-end">
-              {showAcceptButton ? (
+              {isTermsSectionBySection ? (
+                <Button
+                  onClick={handleAcceptCurrentSection}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8"
+                >
+                  Accept agreement
+                </Button>
+              ) : showAcceptButton ? (
                 <Button 
                   onClick={handleAccept}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8"

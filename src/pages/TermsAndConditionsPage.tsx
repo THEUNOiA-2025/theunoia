@@ -10,9 +10,55 @@ const TermsAndConditionsPage = () => {
         <p className="text-muted-foreground mb-8">M/S THEUNOiA LLP — Last Edited: 31.12.2025</p>
 
         <div className="prose prose-lg dark:prose-invert max-w-none space-y-8">
-          {/* Section 1 */}
+          {/* Section 1 - Privacy Policy DigiLocker & Aadhaar (exact content, do not modify) */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">1. Introduction & Legal Scope</h2>
+            <h2 className="text-2xl font-semibold text-foreground">1. Privacy Policy – DigiLocker & Aadhaar Verification</h2>
+            <p className="text-muted-foreground font-medium mt-2">Purpose of Aadhaar Verification</p>
+            <p className="text-muted-foreground">
+              THEUNOiA uses DigiLocker&apos;s consent-based Aadhaar verification solely to prevent fake, duplicate, or impersonated student accounts.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Use of DigiLocker Services</p>
+            <p className="text-muted-foreground">
+              Verification is initiated only by the user after explicit consent. No unauthorized access is performed.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Data Accessed During Verification</p>
+            <p className="text-muted-foreground">
+              THEUNOiA does not access or store Aadhaar numbers, documents, PDFs, XMLs, biometrics, or sensitive personal data.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Duplicate Account Prevention</p>
+            <p className="text-muted-foreground">
+              A non-reversible technical identifier provided by DigiLocker may be stored to ensure one person maintains only one account.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Data Storage & Retention</p>
+            <p className="text-muted-foreground">
+              Only verification status, timestamp, and technical identifier are retained for compliance and audit purposes.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">User Consent</p>
+            <p className="text-muted-foreground">
+              Verification proceeds only after explicit user consent via DigiLocker.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Data Sharing</p>
+            <p className="text-muted-foreground">
+              THEUNOiA does not sell, rent, or share Aadhaar-related data with third parties.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Security Measures</p>
+            <p className="text-muted-foreground">
+              All interactions occur through secure backend systems using HTTPS and access controls.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">Regulatory Compliance</p>
+            <p className="text-muted-foreground">
+              THEUNOiA complies with DigiLocker guidelines and Indian IT laws.
+            </p>
+            <p className="text-muted-foreground font-medium mt-2">User Rights</p>
+            <p className="text-muted-foreground">
+              Users may withdraw consent or request deletion where legally permissible.
+            </p>
+            <p className="text-muted-foreground mt-2">Contact support@theunoia.com</p>
+          </section>
+
+          {/* Section 2 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-foreground">2. Introduction & Legal Scope</h2>
             <p className="text-muted-foreground">
               These Terms & Conditions ("Terms") govern access to and use of the THEUNOiA platform ("Platform"), operated by M/S THEUNOiA LLP, a limited liability partnership incorporated under Indian law.
             </p>
@@ -31,9 +77,9 @@ const TermsAndConditionsPage = () => {
             </p>
           </section>
 
-          {/* Section 2 */}
+          {/* Section 3 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">2. Definitions</h2>
+            <h2 className="text-2xl font-semibold text-foreground">3. Definitions</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li><strong>Platform</strong> – THEUNOiA web and mobile application</li>
               <li><strong>User</strong> – Any registered individual or entity</li>
@@ -59,9 +105,9 @@ const TermsAndConditionsPage = () => {
             </p>
           </section>
 
-          {/* Section 4 */}
+          {/* Section 5 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">4. Eligibility & Account Responsibility</h2>
+            <h2 className="text-2xl font-semibold text-foreground">5. Eligibility & Account Responsibility</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Users must be 18 years or older</li>
               <li>Users under 18 require verifiable parental consent as per DPDP Act, 2023</li>
@@ -73,9 +119,9 @@ const TermsAndConditionsPage = () => {
             </p>
           </section>
 
-          {/* Section 5 */}
+          {/* Section 6 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">5. Contract Model</h2>
+            <h2 className="text-2xl font-semibold text-foreground">6. Contract Model</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Only fixed-price contracts are supported</li>
               <li>Hourly billing and time tracking are not supported</li>
@@ -83,16 +129,16 @@ const TermsAndConditionsPage = () => {
             </ul>
           </section>
 
-          {/* Section 6 */}
+          {/* Section 7 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">6. Payment Structure & Platform Fees</h2>
+            <h2 className="text-2xl font-semibold text-foreground">7. Payment Structure & Platform Fees</h2>
             
-            <h3 className="text-xl font-medium text-foreground mt-4">6.1 Buyer Payment on Acceptance</h3>
+            <h3 className="text-xl font-medium text-foreground mt-4">7.1 Buyer Payment on Acceptance</h3>
             <p className="text-muted-foreground">
               Upon accepting a Freelancer's proposal, the Buyer must pay 100% of the contract value.
             </p>
 
-            <h3 className="text-xl font-medium text-foreground mt-4">6.2 Platform-Held Funds (Escrow-Style)</h3>
+            <h3 className="text-xl font-medium text-foreground mt-4">7.2 Platform-Held Funds (Escrow-Style)</h3>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>All payments are held securely by the Platform</li>
               <li>THEUNOiA is not a bank</li>
@@ -104,7 +150,7 @@ const TermsAndConditionsPage = () => {
               Upon successful completion and approval, payouts are processed with applicable platform commission.
             </p>
 
-            <h3 className="text-xl font-medium text-foreground mt-4">6.4 Payout Timeline</h3>
+            <h3 className="text-xl font-medium text-foreground mt-4">7.4 Payout Timeline</h3>
             <p className="text-muted-foreground">
               Payouts are released 2–5 working days after:
             </p>
@@ -117,9 +163,9 @@ const TermsAndConditionsPage = () => {
             </p>
           </section>
 
-          {/* Section 7 */}
+          {/* Section 8 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">7. Payment Gateway & Processing</h2>
+            <h2 className="text-2xl font-semibold text-foreground">8. Payment Gateway & Processing</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Payments are processed exclusively via Razorpay</li>
               <li>Supported methods include UPI, cards, wallets, net banking</li>
@@ -150,11 +196,11 @@ const TermsAndConditionsPage = () => {
             </ul>
           </section>
 
-          {/* Section 9 */}
+          {/* Section 10 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">9. Refund Policy & Dispute Resolution</h2>
+            <h2 className="text-2xl font-semibold text-foreground">10. Refund Policy & Dispute Resolution</h2>
             
-            <h3 className="text-xl font-medium text-foreground mt-4">9.1 Grounds for Refund</h3>
+            <h3 className="text-xl font-medium text-foreground mt-4">10.1 Grounds for Refund</h3>
             <p className="text-muted-foreground">Refunds may be requested if:</p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Work is incomplete</li>
@@ -168,7 +214,7 @@ const TermsAndConditionsPage = () => {
               All disputes are reviewed by THEUNOiA's internal Dispute Resolution Committee.
             </p>
 
-            <h3 className="text-xl font-medium text-foreground mt-4">9.3 Refund Rules</h3>
+            <h3 className="text-xl font-medium text-foreground mt-4">10.3 Refund Rules</h3>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Valid Buyer claims → partial or full refund</li>
               <li>Unreasonable Buyer rejection → payout may be released to Freelancer</li>
@@ -181,9 +227,9 @@ const TermsAndConditionsPage = () => {
             </p>
           </section>
 
-          {/* Section 10 */}
+          {/* Section 11 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">10. Taxes, GST & TDS</h2>
+            <h2 className="text-2xl font-semibold text-foreground">11. Taxes, GST & TDS</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>All transactions are in INR</li>
               <li>GST applies to Platform commission fees</li>
@@ -192,9 +238,9 @@ const TermsAndConditionsPage = () => {
             </ul>
           </section>
 
-          {/* Section 11 */}
+          {/* Section 12 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">11. Intellectual Property</h2>
+            <h2 className="text-2xl font-semibold text-foreground">12. Intellectual Property</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Users retain ownership of their content</li>
               <li>Users grant THEUNOiA a worldwide, royalty-free license to host, display, and promote content</li>
@@ -216,9 +262,9 @@ const TermsAndConditionsPage = () => {
             </p>
           </section>
 
-          {/* Section 13 */}
+          {/* Section 14 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">13. Service Availability</h2>
+            <h2 className="text-2xl font-semibold text-foreground">14. Service Availability</h2>
             <p className="text-muted-foreground">
               THEUNOiA does not guarantee uninterrupted availability. Downtime may occur due to:
             </p>
@@ -239,9 +285,9 @@ const TermsAndConditionsPage = () => {
             </ul>
           </section>
 
-          {/* Section 15 */}
+          {/* Section 16 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">15. Indemnification</h2>
+            <h2 className="text-2xl font-semibold text-foreground">16. Indemnification</h2>
             <p className="text-muted-foreground">
               Users agree to indemnify and hold harmless THEUNOiA against:
             </p>
@@ -262,17 +308,17 @@ const TermsAndConditionsPage = () => {
             </ul>
           </section>
 
-          {/* Section 17 */}
+          {/* Section 18 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">17. Amendments & Final Provisions</h2>
+            <h2 className="text-2xl font-semibold text-foreground">18. Amendments & Final Provisions</h2>
             <p className="text-muted-foreground">
               THEUNOiA may update these Terms at any time. Continued use of the Platform constitutes acceptance of revised Terms.
             </p>
           </section>
 
-          {/* Section 18 */}
+          {/* Section 19 */}
           <section>
-            <h2 className="text-2xl font-semibold text-foreground">18. Contact Details</h2>
+            <h2 className="text-2xl font-semibold text-foreground">19. Contact Details</h2>
             <address className="not-italic text-muted-foreground">
               <p className="font-medium">M/S THEUNOiA LLP</p>
               <p>C/O Nilkanth, Laxmi Nagar</p>
