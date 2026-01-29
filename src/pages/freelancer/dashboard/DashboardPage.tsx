@@ -861,7 +861,7 @@ const DashboardPage = () => {
                       muted
                       playsInline
                     >
-                      <source src="/Video/New Project 29 [4ED1F2C].mp4" type="video/mp4" />
+                      <source src={encodeURI("/Video/New Project 29 [4ED1F2C].mp4")} type="video/mp4" />
                     </video>
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col">
@@ -909,7 +909,7 @@ const DashboardPage = () => {
                       playsInline
                       poster="/images/dashboard-hero.png"
                     >
-                      <source src="/Video/WhatsApp Video 2026-01-16 at 2.07.43 AM.mp4" type="video/mp4" />
+                      <source src={encodeURI("/Video/WhatsApp Video 2026-01-16 at 2.07.43 AM.mp4")} type="video/mp4" />
                     </video>
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col">
@@ -956,7 +956,7 @@ const DashboardPage = () => {
                       muted
                       playsInline
                     >
-                      <source src="/Video/WhatsApp Video 2026-01-28 at 6.24.41 PM.mp4" type="video/mp4" />
+                      <source src={encodeURI("/Video/WhatsApp Video 2026-01-28 at 6.24.41 PM.mp4")} type="video/mp4" />
                     </video>
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col">
@@ -1003,7 +1003,7 @@ const DashboardPage = () => {
                       muted
                       playsInline
                     >
-                      <source src="/Video/video1.mp4" type="video/mp4" />
+                      <source src={encodeURI("/Video/video1.mp4")} type="video/mp4" />
                     </video>
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col">

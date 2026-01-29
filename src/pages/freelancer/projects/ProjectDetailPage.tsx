@@ -380,8 +380,8 @@ const ProjectDetailPage = () => {
                       
                       setProject({ ...project, status: 'completed' });
                       toast.success('Project marked as complete');
-                    } catch (error: any) {
-                      toast.error(error.message || 'Failed to mark project as complete');
+                    } catch (error: unknown) {
+                      toast.error(error instanceof Error ? error.message : 'Failed to mark project as complete');
                     }
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-accent-green text-[#052005] text-xs font-bold rounded-xl shadow-sm hover:shadow-md transition-all"
@@ -433,7 +433,7 @@ const ProjectDetailPage = () => {
               <div className="flex flex-col gap-5">
               <div className="relative w-full max-w-[90%] aspect-[16/9] rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50 group">
                 <video
-                  src="/Video/New Project 29 [4ED1F2C].mp4"
+                  src={encodeURI("/Video/New Project 29 [4ED1F2C].mp4")}
                   className="absolute inset-0 w-full h-full object-cover"
                   autoPlay
                   loop
