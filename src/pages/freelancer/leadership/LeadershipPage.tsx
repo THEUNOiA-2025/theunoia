@@ -80,7 +80,7 @@ const LeadershipPage = () => {
       <main className="w-full">
         {/* Hero – full width, slightly reduced height */}
         <section className="w-full bg-black relative overflow-hidden min-h-[300px] flex items-end">
-          <div className="absolute inset-0 hero-banner-mask" aria-hidden />
+          <div className="absolute inset-0 leadership-banner-mask" aria-hidden />
           <div className="max-w-[1200px] mx-auto w-full px-6 md:px-8 pt-6 pb-14 relative z-10 flex items-center gap-4">
             <div className="relative flex-shrink-0">
               <Avatar className="size-24 rounded-full border-2 border-white/20 overflow-hidden bg-slate-700 ring-2 ring-white">

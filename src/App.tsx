@@ -45,6 +45,9 @@ const AdminCreditsPage = lazy(() => import("./pages/admin/AdminCreditsPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 
+// Client: view freelancer dashboard
+const FreelancerViewPage = lazy(() => import("./pages/client/freelancer/FreelancerViewPage"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -160,6 +163,14 @@ const App = () => (
                   element={
                     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                       <CheckoutPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/freelancer/:userId" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <FreelancerViewPage />
                     </Suspense>
                   } 
                 />

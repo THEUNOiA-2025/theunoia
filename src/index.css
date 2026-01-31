@@ -205,6 +205,18 @@ All colors MUST be HSL.
     background-position: center 20%;
   }
 
+  .leadership-banner-mask {
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.1) 100%
+      ),
+      url("/images/leadership%20banner.png");
+    background-size: cover;
+    background-position: center 20%;
+  }
+
   .deep-soft-shadow {
     box-shadow: 0 25px 50px -12px rgba(126, 99, 248, 0.08);
   }
