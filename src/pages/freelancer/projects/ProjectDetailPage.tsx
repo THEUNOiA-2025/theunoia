@@ -22,6 +22,8 @@ import { TOKEN_REFUND_POLICY } from "@/lib/credits/tokenRefundPolicy";
 import { recordActivity } from "@/utils/dailyStreak";
 import { CollaborationDialog } from "./collaboration/CollaborationDialog";
 import { ProjectTrackingBoard } from "./ProjectTracking/ProjectTrackingBoard";
+import { getPhasesForCategory } from "@/pages/shared/projects/ProjectTracking/phaseMapping";
+import { getPhasePaymentStatus } from "@/pages/shared/projects/ProjectTracking/phaseLockingLogic";
 
 interface Project {
   id: string;
@@ -571,6 +573,36 @@ const ProjectDetailPage = () => {
                   </div>
                 </div>
               )}
+
+              {/* Separator then Project payments (Overview tab) */}
+              <div className="pt-5 border-t border-slate-300" />
+              <div className="space-y-3">
+                <h2 className="text-base font-bold text-slate-900">Project payments</h2>
+                {(() => {
+                  const phases = getPhasesForCategory(project?.category || null);
+                  const activePhaseIndex = null;
+                  const remaining = phases.filter((_, i) => getPhasePaymentStatus(i, phases.length, activePhaseIndex) !== 'done').length;
+                  return (
+                    <>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                        {phases.map((phase, index) => {
+                          const paymentStatus = getPhasePaymentStatus(index, phases.length, activePhaseIndex);
+                          const paymentLabel = paymentStatus === 'done' ? 'Done' : paymentStatus === 'pending' ? 'Pending' : 'Not yet started';
+                          const paymentClass = paymentStatus === 'done' ? 'text-green-700' : paymentStatus === 'pending' ? 'text-amber-700' : 'text-slate-500';
+                          return (
+                            <span key={phase} className={`text-xs font-medium ${paymentClass}`}>
+                              Phase {index + 1}: {paymentLabel}
+                            </span>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs font-bold text-slate-700">
+                        Payment remaining: {remaining} out of {phases.length}
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
             </section>
             </div>
 

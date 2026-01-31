@@ -2,40 +2,175 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus, Edit, GraduationCap, Building2, MapPin } from "lucide-react";
+import {
+  Camera,
+  Star,
+  CheckCircle2,
+  Clock,
+  X,
+  Plus,
+  Edit,
+  Shield,
+  Award,
+  QrCode,
+  Upload,
+  GraduationCap,
+  ArrowRight,
+  MessageSquare,
+  Rocket,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+
+const ROLE_LABELS: Record<string, string> = {
+  student: "Individual Contractor",
+  contributor: "Contributor",
+  mentor: "Mentor",
+};
+
+interface ProfileState {
+  firstName: string;
+  lastName: string;
+  email: string;
+  userType: string;
+  city: string;
+  pinCode: string;
+  profilePictureUrl: string;
+  bio: string;
+  professionalTitle: string;
+  bannerUrl: string;
+  createdAt: string | null;
+}
+
+interface VerificationState {
+  verification_status?: string;
+  institute_name?: string;
+  [key: string]: unknown;
+}
+
+interface ProjectItem {
+  id: string;
+  title: string;
+  description?: string;
+  image_url?: string | null;
+  category?: string | null;
+  rating?: number | null;
+  client_feedback?: string | null;
+  status?: string | null;
+  completed_at?: string | null;
+  [key: string]: unknown;
+}
+
+interface ReviewItem {
+  rating: number;
+  feedback?: string | null;
+  reviewer_name?: string;
+  reviewer_role?: string;
+}
+
+const TEXT_PRIMARY = "#121118";
+const TEXT_MUTED = "#68608a";
+
+// Development mock data for Skill Bridge Assignments (no backend for now)
+const MOCK_ASSIGNMENTS: ProjectItem[] = [
+  {
+    id: "mock-1",
+    title: "UI Design Task",
+    description: "Design a modern dashboard interface with responsive layout and accessibility in mind.",
+    category: "Design",
+    subcategory: "UI/UX",
+    cover_image_url: "/images/class1.png",
+    status: "in_progress",
+    completed_at: null,
+    rating: null,
+  },
+  {
+    id: "mock-2",
+    title: "Frontend Build",
+    description: "Build the main landing page and integrate with the API. React and TypeScript.",
+    category: "Development",
+    subcategory: "React",
+    video_url: "/Video/New Project 29 [4ED1F2C].mp4",
+    status: "in_progress",
+    completed_at: null,
+    rating: null,
+  },
+  {
+    id: "mock-3",
+    title: "Dashboard Module",
+    description: "Completed dashboard with charts, filters and export. Delivered on time.",
+    category: "Development",
+    subcategory: "Full Stack",
+    video_url: "/Video/video 3.mp4",
+    status: "completed",
+    completed_at: "2025-01-15",
+    rating: 4.5,
+  },
+  {
+    id: "mock-4",
+    title: "API Integration",
+    description: "REST API integration with auth and real-time updates. Client very satisfied.",
+    category: "Development",
+    subcategory: "Backend",
+    video_url: "/Video/WhatsApp Video 2026-01-28 at 6.24.41 PM.mp4",
+    status: "completed",
+    completed_at: "2025-01-20",
+    rating: 5,
+  },
+];
+
+interface PortfolioItem {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+}
+
+const MOCK_PORTFOLIO: PortfolioItem[] = [
+  { id: "port-1", title: "HealthTech Mobile App", description: "Conceptual wellness tracking for athletes. Real-time metrics, goal setting, and recovery insights in one clean interface.", image_url: "/images/class1.png" },
+  { id: "port-2", title: "Sustainable Brand Identity", description: "Visual identity for an eco-conscious startup. Logo, color system, and key touchpoints for a green tech brand.", image_url: "/images/dashboard-preview.png" },
+  { id: "port-3", title: "Dashboard Analytics Module", description: "Custom dashboard with charts, filters and export. Built for a SaaS client to visualize user and revenue metrics.", image_url: "/images/class3.png" },
+  { id: "port-4", title: "E‑commerce Checkout Flow", description: "Streamlined checkout and payment UX. Reduced steps and improved conversion for a retail client.", image_url: "/images/dashboard-hero.png" },
+];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [uploadingPicture, setUploadingPicture] = useState(false);
-  const [profile, setProfile] = useState({
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [profile, setProfile] = useState<ProfileState>({
     firstName: "",
     lastName: "",
     email: "",
     userType: "",
-    gender: "",
-    dateOfBirth: null as Date | null,
     city: "",
     pinCode: "",
     profilePictureUrl: "",
     bio: "",
-    phone: "",
-    website: "",
-    billingAddress: "",
+    professionalTitle: "",
+    bannerUrl: "",
+    createdAt: null,
   });
-  const [verification, setVerification] = useState<any>(null);
+  const [verification, setVerification] = useState<VerificationState | null>(null);
+  const [isSkillVerified, setIsSkillVerified] = useState(false);
+  const [role, setRole] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [newSkill, setNewSkill] = useState("");
-  const [addingSkill, setAddingSkill] = useState(false);
-  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [rating, setRating] = useState<{ average: number; count: number } | null>(null);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [assignmentFilter, setAssignmentFilter] = useState<"all" | "in_progress" | "completed">("all");
+  const [educationModalOpen, setEducationModalOpen] = useState(false);
+  const [educationForm, setEducationForm] = useState({
+    institution: "",
+    degree: "",
+    field: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+  });
 
   useEffect(() => {
     if (user) {
@@ -45,141 +180,103 @@ const ProfilePage = () => {
       fetchProjects();
       fetchRatings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchProfile = async () => {
     if (!user?.id) return;
-    
     try {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", user.id)
         .single();
-
       if (error) throw error;
-
-      if (data) {
-        setProfile({
-          firstName: data.first_name || "",
-          lastName: data.last_name || "",
-          email: data.email || "",
-          userType: data.user_type || "",
-          gender: data.gender || "",
-          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : null,
-          city: data.city || "",
-          pinCode: data.pin_code || "",
-          profilePictureUrl: data.profile_picture_url || "",
-          bio: data.bio || "",
-          phone: data.phone || "",
-          website: data.website || "",
-          billingAddress: data.billing_address || "",
-        });
-      }
+      const row = data as Record<string, unknown>;
+      setProfile({
+        firstName: (row.first_name as string) || "",
+        lastName: (row.last_name as string) || "",
+        email: (row.email as string) || "",
+        userType: (row.user_type as string) || "",
+        city: (row.city as string) || "",
+        pinCode: (row.pin_code as string) || "",
+        profilePictureUrl: (row.profile_picture_url as string) || "",
+        bio: (row.bio as string) || "",
+        professionalTitle: (row.professional_title as string) || (row.role as string) || "",
+        bannerUrl: (user?.id ? localStorage.getItem(BANNER_STORAGE_KEY(user.id)) : null) || "",
+        createdAt: (row.created_at as string) || null,
+      });
     } catch (error) {
       console.error("Error fetching profile:", error);
-      toast.error("Failed to load profile data");
+      toast.error("Failed to load profile");
     }
   };
 
   const fetchVerification = async () => {
     if (!user?.id) return;
-    
     try {
       const { data, error } = await supabase
         .from("student_verifications")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      setVerification(data);
+      if (error && error.code !== "PGRST116") throw error;
+      setVerification(data as VerificationState | null);
     } catch (error) {
       console.error("Error fetching verification:", error);
-      toast.error("Failed to load verification data");
     }
   };
 
+  // Skill verification: no backend yet. When implemented (admin verifies from panel after user submits task),
+  // fetch from e.g. skill_verifications and set isSkillVerified(data?.status === "approved").
+  // const fetchSkillVerification = async () => { ... };
+  // Call fetchSkillVerification in useEffect when ready.
+
+  const SKILLS_STORAGE_KEY = (userId: string) => `profile_role_skills_${userId}`;
+  const BANNER_STORAGE_KEY = (userId: string) => `profile_banner_${userId}`;
+
   const fetchSkills = async () => {
     if (!user?.id) return;
-    
     try {
       const { data, error } = await supabase
         .from("user_skills")
         .select("skill_name")
         .eq("user_id", user.id);
-
-      if (error) throw error;
-
-      setSkills(data?.map((s) => s.skill_name) || []);
+      if (!error && data?.length) {
+        setSkills(data.map((s) => s.skill_name));
+        return;
+      }
+      const raw = localStorage.getItem(SKILLS_STORAGE_KEY(user.id));
+      if (raw) {
+        const parsed = JSON.parse(raw) as { role?: string; skills?: string[] };
+        if (parsed.role) setRole(parsed.role);
+        if (Array.isArray(parsed.skills)) setSkills(parsed.skills);
+      }
     } catch (error) {
       console.error("Error fetching skills:", error);
-    }
-  };
-
-  const handleAddSkill = async () => {
-    if (!newSkill.trim() || !user?.id) return;
-
-    if (skills.includes(newSkill.trim())) {
-      toast.error("Skill already exists");
-      return;
-    }
-
-    setAddingSkill(true);
-    try {
-      const { error } = await supabase
-        .from("user_skills")
-        .insert({ user_id: user.id, skill_name: newSkill.trim() });
-
-      if (error) throw error;
-
-      toast.success("Skill added successfully!");
-      setNewSkill("");
-      fetchSkills();
-    } catch (error) {
-      console.error("Error adding skill:", error);
-      toast.error("Failed to add skill");
-    } finally {
-      setAddingSkill(false);
-    }
-  };
-
-  const handleDeleteSkill = async (skillName: string) => {
-    if (!user?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from("user_skills")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("skill_name", skillName);
-
-      if (error) throw error;
-
-      toast.success("Skill removed");
-      fetchSkills();
-    } catch (error) {
-      console.error("Error deleting skill:", error);
-      toast.error("Failed to remove skill");
+      try {
+        const raw = localStorage.getItem(SKILLS_STORAGE_KEY(user.id));
+        if (raw) {
+          const parsed = JSON.parse(raw) as { role?: string; skills?: string[] };
+          if (parsed.role) setRole(parsed.role);
+          if (Array.isArray(parsed.skills)) setSkills(parsed.skills);
+        }
+      } catch {
+        // ignore
+      }
     }
   };
 
   const fetchProjects = async () => {
     if (!user?.id) return;
-    
     try {
       const { data, error } = await supabase
         .from("user_projects")
         .select("*")
         .eq("user_id", user.id)
         .order("completed_at", { ascending: false });
-
       if (error) throw error;
-
-      setProjects(data || []);
+      setProjects((data as ProjectItem[]) || []);
     } catch (error) {
       console.error("Error fetching projects:", error);
     }
@@ -187,413 +284,813 @@ const ProfilePage = () => {
 
   const fetchRatings = async () => {
     if (!user?.id) return;
-    
     try {
       const { data, error } = await supabase
         .from("freelancer_ratings")
-        .select("rating")
+        .select("rating, feedback")
         .eq("freelancer_id", user.id);
-
       if (error) throw error;
-
-      if (data && data.length > 0) {
-        const total = data.reduce((sum, r) => sum + r.rating, 0);
-        setRating({
-          average: total / data.length,
-          count: data.length,
-        });
+      if (data?.length) {
+        const total = data.reduce((sum, r) => sum + (r.rating ?? 0), 0);
+        setRating({ average: total / data.length, count: data.length });
+        setReviews(
+          data.map((r) => ({
+            rating: r.rating ?? 0,
+            feedback: (r as { feedback?: string }).feedback,
+          }))
+        );
       }
     } catch (error) {
       console.error("Error fetching ratings:", error);
     }
   };
 
-  const handleProfilePictureUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file || !user) return;
-
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
+      toast.error("Please upload an image");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image must be less than 5MB");
       return;
     }
-
     setUploadingPicture(true);
     try {
-      if (profile.profilePictureUrl) {
-        const oldPath = profile.profilePictureUrl.split("/").pop();
-        if (oldPath) {
-          await supabase.storage
-            .from("profile-pictures")
-            .remove([`${user.id}/${oldPath}`]);
-        }
-      }
-
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
-
       const { error: uploadError } = await supabase.storage
         .from("profile-pictures")
         .upload(filePath, file);
-
       if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("profile-pictures").getPublicUrl(filePath);
-
-      const { error: updateError } = await supabase
+      const { data: { publicUrl } } = supabase.storage.from("profile-pictures").getPublicUrl(filePath);
+      await supabase
         .from("user_profiles")
         .update({ profile_picture_url: publicUrl })
         .eq("user_id", user.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Profile picture updated successfully!");
+      toast.success("Profile picture updated!");
       fetchProfile();
-    } catch (error: any) {
-      console.error("Error uploading profile picture:", error);
-      toast.error(error.message || "Failed to upload profile picture");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setUploadingPicture(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "approved":
-        return (
-          <Badge variant="default" className="flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" />
-            Verified
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            Pending
-          </Badge>
-        );
-      case "rejected":
-        return (
-          <Badge variant="destructive" className="flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Rejected
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Not Verified
-          </Badge>
-        );
+  const handleRemoveProfilePicture = async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ profile_picture_url: null })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setProfile((prev) => ({ ...prev, profilePictureUrl: "" }));
+      toast.success("Profile picture removed");
+    } catch {
+      toast.error("Could not remove profile picture");
     }
   };
 
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image");
+      return;
+    }
+    setUploadingBanner(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      try {
+        localStorage.setItem(BANNER_STORAGE_KEY(user.id), dataUrl);
+        setProfile((prev) => ({ ...prev, bannerUrl: dataUrl }));
+        toast.success("Banner updated!");
+      } catch {
+        toast.error("Banner save failed.");
+      } finally {
+        setUploadingBanner(false);
+      }
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image");
+      setUploadingBanner(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const roleLabel = (ROLE_LABELS[profile.userType?.toLowerCase()] ?? profile.userType) || "Freelancer";
+  const filteredProjects =
+    assignmentFilter === "all"
+      ? projects
+      : assignmentFilter === "completed"
+        ? projects.filter((p) => p.status === "completed" || p.completed_at)
+        : projects.filter((p) => p.status !== "completed" && !p.completed_at);
+
+  const assignmentsToShow =
+    assignmentFilter === "all"
+      ? MOCK_ASSIGNMENTS
+      : assignmentFilter === "completed"
+        ? MOCK_ASSIGNMENTS.filter((p) => p.completed_at)
+        : MOCK_ASSIGNMENTS.filter((p) => !p.completed_at);
+
+  const fiveStarCount = reviews.filter((r) => r.rating === 5).length;
+  const fourStarCount = reviews.filter((r) => r.rating === 4).length;
+  const fiveStarPct = rating?.count ? (fiveStarCount / rating.count) * 100 : 0;
+  const fourStarPct = rating?.count ? (fourStarCount / rating.count) * 100 : 0;
+
   return (
-    <main className="flex-1 p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Profile Header Card - Clean Style */}
-          <Card className="rounded-3xl border overflow-hidden">
-            {/* Thin accent line at top */}
-            <div className="h-1 bg-gradient-to-r from-primary via-accent-purple to-accent-blue" />
-            
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
-                {/* Profile Picture */}
-                <div className="relative group">
-                  <Avatar className="h-36 w-36 border-4 border-primary/20 ring-4 ring-primary/10">
-                    <AvatarImage src={profile.profilePictureUrl} />
-                    <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent-purple text-white">
-                      {profile.firstName[0]}
-                      {profile.lastName[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <label
-                    htmlFor="profile-picture"
-                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    <Camera className="h-8 w-8 text-white" />
-                    <input
-                      id="profile-picture"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleProfilePictureUpload}
-                      disabled={uploadingPicture}
-                    />
-                  </label>
-                  {uploadingPicture && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                      <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full" />
-                    </div>
-                  )}
+    <div className="max-w-[1280px] mx-auto px-4 lg:px-8 py-10 space-y-12">
+        {/* —— Add Education History Modal (matches reference 100%) —— */}
+        <Dialog open={educationModalOpen} onOpenChange={setEducationModalOpen}>
+          <DialogContent
+            className="max-w-lg w-full rounded-2xl shadow-2xl border border-gray-200 p-0 gap-0 [&>button]:hidden overflow-hidden bg-white"
+          >
+            <div className="px-6 pt-5 pb-4 flex items-center justify-between border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="size-9 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                  <GraduationCap className="h-5 w-5" />
                 </div>
-
-                {/* User Info */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h1 className="text-3xl font-bold text-foreground">
-                        {profile.firstName} {profile.lastName}
-                      </h1>
-                      <Badge className="mt-2 bg-gradient-to-r from-primary to-accent-purple text-white border-0 px-3 py-1 flex items-center gap-1.5 w-fit">
-                        <GraduationCap className="h-4 w-4" />
-                        {profile.userType === "student"
-                          ? "Student Freelancer"
-                          : "Business Owner"}
-                      </Badge>
-                      {/* Rating - only for students */}
-                      {profile.userType === "student" && rating && (
-                        <div className="flex items-center gap-2 mt-3">
-                          <div className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-full">
-                            <Star className="h-4 w-4 fill-secondary-foreground text-secondary-foreground" />
-                            <span className="font-bold text-secondary-foreground">{rating.average.toFixed(1)}</span>
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            ({rating.count} review{rating.count !== 1 ? 's' : ''})
-                          </span>
-                        </div>
-                      )}
-                      {profile.bio && (
-                        <p className="mt-4 text-muted-foreground max-w-2xl">
-                          {profile.bio}
-                        </p>
-                      )}
-                      {/* Institute name - only for students */}
-                      {profile.userType === "student" && verification?.institute_name && (
-                        <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-lg bg-green/20 flex items-center justify-center">
-                            <Building2 className="h-3.5 w-3.5 text-green-600" />
-                          </span>
-                          {verification.institute_name}
-                        </p>
-                      )}
-                      {/* Verification status - only for students */}
-                      {profile.userType === "student" && (
-                        <div className="flex items-center gap-2 mt-4">
-                          {getStatusBadge(verification?.verification_status || "not_verified")}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate("/profile/verify")}
-                            className="rounded-lg"
-                          >
-                            Verify
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={() => navigate("/profile/edit")}
-                        className="bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 rounded-xl"
-                      >
-                        Edit Profile
-                      </Button>
-                      {/* View Public Profile - only for students */}
-                      {profile.userType === "student" && (
-                        <Button variant="outline" className="rounded-xl">View Public Profile</Button>
-                      )}
-                    </div>
-                  </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#121118]">Add Education History</h2>
+                  <p className="text-xs text-[#68608a]">Share your academic background and certifications.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Two Column Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Skills Card - Colorful */}
-              <Card className="rounded-2xl border bg-gradient-to-br from-accent-blue/10 via-card to-primary/5">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-accent-blue/30 flex items-center justify-center">
-                      <span className="text-lg">⚡</span>
-                    </div>
-                    <CardTitle className="text-lg">Skills</CardTitle>
+              <DialogClose className="size-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400">
+                <X className="h-4 w-4" />
+              </DialogClose>
+            </div>
+            <form
+              className="p-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                toast.success("Education history added");
+                setEducationModalOpen(false);
+                setEducationForm({ institution: "", degree: "", field: "", startDate: "", endDate: "", description: "" });
+              }}
+            >
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#121118] mb-1" htmlFor="institution">
+                    Institution Name
+                  </label>
+                  <input
+                    id="institution"
+                    type="text"
+                    placeholder="e.g. Stanford University"
+                    value={educationForm.institution}
+                    onChange={(e) => setEducationForm((f) => ({ ...f, institution: e.target.value }))}
+                    className="w-full px-3 py-2.5 bg-[#f8f7fa] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all placeholder:text-gray-400"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#121118] mb-1" htmlFor="degree">
+                      Degree/Certification
+                    </label>
+                    <input
+                      id="degree"
+                      type="text"
+                      placeholder="e.g. Bachelor of Science"
+                      value={educationForm.degree}
+                      onChange={(e) => setEducationForm((f) => ({ ...f, degree: e.target.value }))}
+                      className="w-full px-3 py-2.5 bg-[#f8f7fa] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all placeholder:text-gray-400"
+                    />
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setIsEditingSkills(!isEditingSkills)}
-                    className="rounded-lg"
+                  <div>
+                    <label className="block text-xs font-semibold text-[#121118] mb-1" htmlFor="field">
+                      Field of Study
+                    </label>
+                    <input
+                      id="field"
+                      type="text"
+                      placeholder="e.g. Product Design"
+                      value={educationForm.field}
+                      onChange={(e) => setEducationForm((f) => ({ ...f, field: e.target.value }))}
+                      className="w-full px-3 py-2.5 bg-[#f8f7fa] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#121118] mb-1" htmlFor="start-date">
+                      Start Date
+                    </label>
+                    <input
+                      id="start-date"
+                      type="month"
+                      value={educationForm.startDate}
+                      onChange={(e) => setEducationForm((f) => ({ ...f, startDate: e.target.value }))}
+                      className="w-full px-3 py-2.5 bg-[#f8f7fa] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#121118] mb-1" htmlFor="end-date">
+                      End Date (or Expected)
+                    </label>
+                    <input
+                      id="end-date"
+                      type="month"
+                      value={educationForm.endDate}
+                      onChange={(e) => setEducationForm((f) => ({ ...f, endDate: e.target.value }))}
+                      className="w-full px-3 py-2.5 bg-[#f8f7fa] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#121118] mb-1" htmlFor="description">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="description"
+                    rows={2}
+                    placeholder="Key focus areas, achievements, or research..."
+                    value={educationForm.description}
+                    onChange={(e) => setEducationForm((f) => ({ ...f, description: e.target.value }))}
+                    className="w-full px-3 py-2.5 bg-[#f8f7fa] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all placeholder:text-gray-400 resize-y"
+                  />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="px-4 py-2 text-xs font-bold text-[#68608a] hover:text-[#121118]"
+                  onClick={() => setEducationModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="px-6 py-2.5 text-sm font-bold bg-primary text-white rounded-xl hover:opacity-95 transition-all shadow-lg shadow-primary/25"
+                >
+                  Add Education History
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* —— Identity Hero: Banner + Card —— */}
+        <section className="rounded-2xl overflow-hidden shadow-sm border border-[#f1f0f5] bg-white relative">
+          {/* LinkedIn-style banner */}
+          <label className="block relative h-40 sm:h-48 cursor-pointer group">
+            {profile.bannerUrl ? (
+              <img
+                src={profile.bannerUrl}
+                alt="Cover"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-full h-full bg-primary/10 flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--accent) / 0.1) 100%)" }}
+              />
+            )}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+              <span className="opacity-0 group-hover:opacity-100 text-white text-sm font-medium flex items-center gap-2">
+                <Camera className="h-4 w-4" /> Change cover
+              </span>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleBannerUpload}
+              disabled={uploadingBanner}
+            />
+          </label>
+
+          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+          <div className="relative px-6 pt-4 py-6 pb-12 flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="relative -mt-40 shrink-0">
+              <Avatar className="size-28 md:size-32 rounded-full border-3 border-white shadow-lg bg-white ring-2 ring-white">
+                <AvatarImage src={profile.profilePictureUrl} className="object-cover" />
+                <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
+                  {profile.firstName[0]}
+                  {profile.lastName[0]}
+                </AvatarFallback>
+              </Avatar>
+              <label
+                htmlFor="profile-picture"
+                className="absolute inset-0 rounded-full cursor-pointer flex items-center justify-center"
+              >
+                {!profile.profilePictureUrl && !uploadingPicture && (
+                  <span
+                    className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-2 ring-white hover:bg-primary/90"
+                    title="Add photo"
                   >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Add Skill Input - Only show when editing */}
-                  {isEditingSkills && (
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add a new skill..."
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleAddSkill();
-                          }
-                        }}
-                        disabled={addingSkill}
-                        className="rounded-lg"
-                      />
-                      <Button 
-                        onClick={handleAddSkill} 
-                        disabled={addingSkill || !newSkill.trim()}
-                        size="icon"
-                        className="bg-gradient-to-r from-primary to-accent-purple text-white rounded-lg"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Skills List */}
-                  {skills.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {skills.map((skill, index) => {
-                        const colors = ['bg-primary/20 text-primary', 'bg-accent-blue/30 text-accent-blue-foreground', 'bg-green/30 text-green-foreground', 'bg-secondary text-secondary-foreground'];
-                        return (
-                          <Badge 
-                            key={index} 
-                            className={`${colors[index % colors.length]} border-0 ${isEditingSkills ? 'pr-1' : ''}`}
-                          >
-                            {skill}
-                            {isEditingSkills && (
-                              <button
-                                onClick={() => handleDeleteSkill(skill)}
-                                className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            )}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No skills added yet
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Contact Information Card - Colorful */}
-              <Card className="rounded-2xl border bg-gradient-to-br from-green/10 via-card to-accent/5">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-green/30 flex items-center justify-center">
-                      <span className="text-lg">📧</span>
-                    </div>
-                    <CardTitle className="text-lg">Contact Information</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{profile.email}</span>
-                  </div>
-                  {profile.phone && (
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{profile.phone}</span>
-                    </div>
-                  )}
-                  {profile.website && (
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
-                      <Globe className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={profile.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        {profile.website}
-                      </a>
-                    </div>
-                  )}
-                  {profile.billingAddress && (
-                    <div className="flex items-start gap-3 p-2 rounded-lg bg-white/50">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <span className="text-sm">{profile.billingAddress}</span>
-                    </div>
-                  )}
-                  {!profile.phone && !profile.website && !profile.billingAddress && (
-                    <p className="text-sm text-muted-foreground">
-                      No additional contact info
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                    <Plus className="h-5 w-5" />
+                  </span>
+                )}
+                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                  <Camera className="h-7 w-7 text-white" />
+                </span>
+                <input
+                  id="profile-picture"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProfilePictureUpload}
+                  disabled={uploadingPicture}
+                />
+              </label>
+              {profile.profilePictureUrl && !uploadingPicture && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemoveProfilePicture();
+                  }}
+                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-md ring-2 ring-white hover:bg-red-600"
+                  title="Remove photo"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              {uploadingPicture && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full pointer-events-none">
+                  <div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full" />
+                </div>
+              )}
             </div>
 
-            {/* Right Column */}
-            <div className="lg:col-span-2">
-              <Card className="rounded-2xl border-border/40">
-                <CardHeader>
-                  <CardTitle>Completed Projects ({projects.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {projects.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {projects.map((project) => (
-                        <Card key={project.id} className="overflow-hidden">
-                          {project.image_url && (
-                            <img
-                              src={project.image_url}
-                              alt={project.title}
-                              className="w-full h-48 object-cover"
-                            />
-                          )}
-                          <CardContent className="p-4">
-                            <h3 className="font-semibold mb-2">{project.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                              {project.description}
-                            </p>
-                            {project.rating && (
-                              <div className="flex items-center gap-1 text-sm">
-                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                <span className="font-medium">{project.rating}</span>
-                                <span className="text-muted-foreground">from client</span>
-                              </div>
-                            )}
-                            {project.client_feedback && (
-                              <p className="text-xs text-muted-foreground mt-2 italic">
-                                "{project.client_feedback}"
-                              </p>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground">
-                        No completed projects yet
-                      </p>
-                    </div>
+            <div className="flex-1 text-center md:text-left min-w-0">
+              {/* Row 1: Name + Verified badge (or Not verified + Verify) next to each other */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+                <h1 className="text-2xl font-extrabold" style={{ color: TEXT_PRIMARY }}>
+                  {profile.firstName} {profile.lastName}
+                </h1>
+                {verification?.verification_status === "approved" ? (
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full"
+                    style={{ backgroundColor: "hsl(var(--accent))", color: "#2d4a22" }}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Verified
+                  </span>
+                ) : (
+                  <>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">
+                      Not verified
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs rounded-lg border-primary/40 text-primary hover:bg-primary/10"
+                      onClick={() => navigate("/profile/verify")}
+                    >
+                      Verify
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {/* Row 2: Individual Contractor only */}
+              <div className="mb-2">
+                <span
+                  className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider"
+                  style={{ backgroundColor: "hsl(var(--accent))", color: "#2d4a22" }}
+                >
+                  {roleLabel}
+                </span>
+              </div>
+
+              {/* Row 3: Role and skills */}
+              {(role || skills.length > 0) ? (
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 mb-2 text-sm" style={{ color: TEXT_MUTED }}>
+                  {role && (
+                    <span>
+                      <span className="font-medium">Role:</span>{" "}
+                      <span style={{ color: TEXT_PRIMARY }}>{role}</span>
+                    </span>
                   )}
-                </CardContent>
-              </Card>
+                  {skills.length > 0 && (
+                    <span>
+                      <span className="font-medium">Skills:</span>{" "}
+                      <span style={{ color: TEXT_PRIMARY }}>{skills.join(", ")}</span>
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs mb-2" style={{ color: TEXT_MUTED }}>
+                  Add role and skills in Edit Profile for job matching
+                </p>
+              )}
+
+              {/* Row 4: Description (bio) */}
+              {profile.bio && (
+                <p className="text-sm" style={{ color: TEXT_MUTED }}>
+                  {profile.bio}
+                </p>
+              )}
+              {profile.professionalTitle && !profile.bio && (
+                <p className="text-sm" style={{ color: TEXT_MUTED }}>
+                  {profile.professionalTitle}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg text-sm font-semibold bg-[#f1f0f5] border-0 hover:bg-gray-200 flex items-center justify-center gap-1.5"
+                onClick={() => navigate("/profile/edit")}
+              >
+                <Edit className="h-3.5 w-3.5" /> Edit
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-lg text-sm font-semibold bg-primary text-primary-foreground shadow-md hover:opacity-90 flex items-center justify-center gap-1.5"
+                onClick={() => navigate("/profile")}
+              >
+                <Upload className="h-3.5 w-3.5" /> Portfolio
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg text-sm font-semibold border-2 border-primary/20 text-primary hover:bg-primary/5 flex items-center justify-center gap-1.5"
+                onClick={() => setEducationModalOpen(true)}
+              >
+                <GraduationCap className="h-3.5 w-3.5" /> Education
+              </Button>
             </div>
           </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* —— Left: Verification & Certificates —— */}
+          <aside className="lg:col-span-4 space-y-5">
+            {/* Skill Verification: backend not yet implemented. When ready, admin verifies from panel → show Skill verified. */}
+            <div>
+              <h3 className="text-base font-bold mb-2 flex items-center gap-1.5" style={{ color: TEXT_PRIMARY }}>
+                <Shield className="h-4 w-4 text-primary" />
+                Skill Verification
+              </h3>
+              <div className="bg-white p-4 rounded-xl border border-[#f1f0f5] shadow-sm overflow-hidden relative group">
+                <div className="absolute -right-2 -bottom-2 opacity-10 text-primary">
+                  <Shield className="h-20 w-20" />
+                </div>
+                <h4 className="text-sm font-bold mb-2" style={{ color: TEXT_PRIMARY }}>
+                  Verified Talent
+                </h4>
+                {isSkillVerified ? (
+                  <>
+                    <p className="text-xs mb-3 leading-relaxed" style={{ color: TEXT_MUTED }}>
+                      Your skills have been verified by THEUNOiA mentors. You have full access to premium client assignments.
+                    </p>
+                    <div
+                      className="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-lg gap-1.5"
+                      style={{ backgroundColor: "hsl(var(--accent))", color: "#2d4a22" }}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Skill verified
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs mb-3 leading-relaxed" style={{ color: TEXT_MUTED }}>
+                      Your skills have not been verified by THEUNOiA mentors. In order to have full access to premium client assignments, please verify your skills.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-100 text-amber-800">
+                        Skill not verified
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs rounded-lg border-primary/40 text-primary hover:bg-primary/10"
+                        onClick={() => navigate("/profile/verify")}
+                      >
+                        Verify
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-base font-bold" style={{ color: TEXT_PRIMARY }}>
+                  Certificates
+                </h3>
+                <button
+                  type="button"
+                  className="text-primary text-sm font-bold flex items-center gap-1 hover:underline"
+                >
+                  View All <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <div className="bg-white p-3 rounded-xl border-l-4 border-primary shadow-sm">
+                  <div className="flex justify-between items-start mb-1.5">
+                    <div className="size-7 bg-primary/10 rounded flex items-center justify-center text-primary">
+                      <Award className="h-3.5 w-3.5" />
+                    </div>
+                    <QrCode className="h-3.5 w-3.5 text-gray-400 cursor-pointer" />
+                  </div>
+                  <h5 className="text-sm font-bold mb-0.5" style={{ color: TEXT_PRIMARY }}>
+                    Advanced UI Systems
+                  </h5>
+                  <p className="text-[10px] mb-1.5" style={{ color: TEXT_MUTED }}>
+                    Issued by THEUNOiA • Dec 2023
+                  </p>
+                  <code className="text-[9px] bg-[#f1f0f5] px-1.5 py-0.5 rounded text-primary font-mono">
+                    UID-294-XZQ-990
+                  </code>
+                </div>
+                <div
+                  className="bg-white p-3 rounded-xl border-l-4 shadow-sm"
+                  style={{ borderLeftColor: "hsl(var(--accent))" }}
+                >
+                  <div className="flex justify-between items-start mb-1.5">
+                    <div
+                      className="size-7 rounded flex items-center justify-center"
+                      style={{ backgroundColor: "hsl(var(--accent) / 0.3)", color: "#2d4a22" }}
+                    >
+                      <Award className="h-3.5 w-3.5" />
+                    </div>
+                    <QrCode className="h-3.5 w-3.5 text-gray-400 cursor-pointer" />
+                  </div>
+                  <h5 className="text-sm font-bold mb-0.5" style={{ color: TEXT_PRIMARY }}>
+                    Strategic Product Logic
+                  </h5>
+                  <p className="text-[10px] mb-1.5" style={{ color: TEXT_MUTED }}>
+                    Issued by THEUNOiA • Nov 2023
+                  </p>
+                  <code className="text-[9px] bg-[#f1f0f5] px-1.5 py-0.5 rounded text-primary font-mono">
+                    UID-118-YBB-402
+                  </code>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* —— Right: Assignments & Portfolio —— */}
+          <div className="lg:col-span-8 space-y-6">
+            <section>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <h3 className="text-lg font-bold" style={{ color: TEXT_PRIMARY }}>
+                  Skill Bridge Assignments
+                </h3>
+                <div className="flex bg-white p-0.5 rounded-lg shadow-sm border border-[#f1f0f5]">
+                  {(["all", "in_progress", "completed"] as const).map((key: "all" | "in_progress" | "completed") => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setAssignmentFilter(key)}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                        assignmentFilter === key
+                          ? "bg-primary text-white"
+                          : "text-[#68608a] hover:bg-gray-100"
+                      }`}
+                    >
+                      {key === "all" ? "All" : key === "completed" ? "Completed" : "In Progress"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3">
+                {assignmentsToShow.length > 0 ? (
+                  assignmentsToShow.map((project) => (
+                    <div
+                      key={project.id}
+                      className="group bg-white rounded-xl border border-[#f1f0f5] hover:border-primary/30 transition-all overflow-hidden flex flex-col sm:flex-row"
+                    >
+                      {/* Left: cover image or video (rectangle) */}
+                      <div className="w-full sm:w-48 shrink-0 aspect-video bg-[#f1f0f5] relative">
+                        {project.video_url ? (
+                          <video
+                            src={encodeURI(String(project.video_url))}
+                            className="w-full h-full object-cover"
+                            muted
+                            playsInline
+                            loop
+                            autoPlay
+                          />
+                        ) : (project.cover_image_url || project.image_url) ? (
+                          <img
+                            src={(project.cover_image_url || project.image_url) as string}
+                            alt={project.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            {project.completed_at ? (
+                              <Rocket className="h-10 w-10 text-primary/50" />
+                            ) : (
+                              <Sparkles className="h-10 w-10 text-primary/50" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/* Right: title, description, category, subcategory, ratings (only if completed) */}
+                      <div className="flex-1 min-w-0 p-4 flex flex-col justify-center">
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h4 className="text-sm font-bold group-hover:text-primary transition-colors" style={{ color: TEXT_PRIMARY }}>
+                            {project.title}
+                          </h4>
+                          <span
+                            className={`inline-flex shrink-0 items-center px-2 py-0.5 text-[9px] font-bold rounded-full uppercase ${
+                              project.completed_at
+                                ? "bg-accent/20 text-[#2d4a22]"
+                                : "bg-primary/10 text-primary"
+                            }`}
+                          >
+                            {project.completed_at ? "Completed" : "In Progress"}
+                          </span>
+                        </div>
+                        {project.description && (
+                          <p className="text-xs line-clamp-2 mb-2" style={{ color: TEXT_MUTED }}>
+                            {project.description}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 mb-1">
+                          {project.category && (
+                            <span className="text-[9px] px-1.5 py-0.5 bg-gray-100 rounded" style={{ color: TEXT_PRIMARY }}>
+                              {project.category}
+                            </span>
+                          )}
+                          {project.subcategory != null && project.subcategory !== "" && (
+                            <span className="text-[9px] px-1.5 py-0.5 bg-gray-100 rounded" style={{ color: TEXT_MUTED }}>
+                              {(project.subcategory as string)}
+                            </span>
+                          )}
+                        </div>
+                        {project.completed_at && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${
+                                    (project.rating ?? 0) >= i
+                                      ? "fill-secondary text-secondary"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[10px] font-medium" style={{ color: TEXT_MUTED }}>
+                              {(project.rating ?? 0) > 0 ? `${project.rating}.0` : "—"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-white p-6 rounded-xl border border-[#f1f0f5] text-center text-sm" style={{ color: TEXT_MUTED }}>
+                    No assignments yet.
+                  </div>
+                )}
+              </div>
+            </section>
+
+          </div>
         </div>
-    </main>
+
+        {/* —— Independent Portfolio: full width, 4 per row, cover → title → description —— */}
+        <section className="w-full mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold" style={{ color: TEXT_PRIMARY }}>
+              Independent Portfolio
+            </h3>
+            <button
+              type="button"
+              className="text-primary text-sm font-bold flex items-center gap-1 hover:underline"
+            >
+              View All <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {MOCK_PORTFOLIO.slice(0, 4).map((item) => (
+              <div key={item.id} className="group cursor-pointer">
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="w-full aspect-video object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-300"
+                />
+                <h5 className="font-bold text-sm mt-2" style={{ color: TEXT_PRIMARY }}>
+                  {item.title}
+                </h5>
+                <p className="text-xs leading-relaxed line-clamp-3 mt-0.5" style={{ color: TEXT_MUTED }}>
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* —— Footer: Education & Ratings —— */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-[#f1f0f5]">
+          <div>
+            <h3 className="text-lg font-bold mb-4" style={{ color: TEXT_PRIMARY }}>
+              Education History
+            </h3>
+            <div className="relative pl-6 space-y-6 before:absolute before:left-[9px] before:top-1 before:bottom-1 before:w-[2px] before:bg-gray-200">
+              <div className="relative">
+                <div className="absolute -left-5 top-1 size-3 rounded-full bg-primary border-2 border-white z-10" />
+                <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
+                  {verification?.institute_name || "Education"}
+                </h5>
+                <p className="text-xs text-primary font-medium mb-1">
+                  {verification?.institute_name ? "Student • THEUNOiA" : "Add in Edit Profile"}
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
+                  Focus on your degree and certifications.
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute -left-5 top-1 size-3 rounded-full bg-gray-300 border-2 border-white z-10" />
+                <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
+                  THEUNOiA Design Fellowship
+                </h5>
+                <p className="text-xs text-primary font-medium mb-1">
+                  Advanced UI/UX Certification • 2023
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
+                  Immersive program focusing on high-fidelity prototyping and design tokens.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold mb-4" style={{ color: TEXT_PRIMARY }}>
+              Ratings & Reviews
+            </h3>
+            <div className="flex items-center gap-4 mb-4 p-4 bg-white rounded-xl border border-[#f1f0f5]">
+              <div className="text-center">
+                <div className="text-3xl font-extrabold" style={{ color: TEXT_PRIMARY }}>
+                  {rating ? rating.average.toFixed(1) : "—"}
+                </div>
+                <div className="flex text-secondary justify-center mt-0.5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        rating && Math.round(rating.average) >= i
+                          ? "fill-secondary text-secondary"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex-1 space-y-1">
+                {[5, 4, 3].map((star) => (
+                  <div key={star} className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold w-3">{star}</span>
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all"
+                        style={{
+                          width:
+                            star === 5
+                              ? `${fiveStarPct}%`
+                              : star === 4
+                                ? `${fourStarPct}%`
+                                : "0%",
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              {reviews.filter((r) => r.feedback).slice(0, 2).map((r, i) => (
+                <div
+                  key={i}
+                  className="p-3 bg-white rounded-lg border border-[#f1f0f5] italic text-xs"
+                >
+                  <p className="mb-2" style={{ color: TEXT_MUTED }}>
+                    "{r.feedback}"
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="size-4 rounded-full bg-gray-200" />
+                    <span className="font-bold text-[10px] not-italic" style={{ color: TEXT_PRIMARY }}>
+                      Mentor / Client
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {reviews.filter((r) => r.feedback).length === 0 && (
+                <p className="text-xs" style={{ color: TEXT_MUTED }}>
+                  No written reviews yet.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+    </div>
   );
 };
 

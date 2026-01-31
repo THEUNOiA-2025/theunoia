@@ -33,7 +33,8 @@ import {
   shouldLockPhase,
   canLockAllPhases,
   getPhaseStatusBadge,
-  getNextPhase
+  getNextPhase,
+  getPhasePaymentStatus
 } from '@/pages/shared/projects/ProjectTracking/phaseLockingLogic';
 import { PhaseState, PhaseStatus } from '@/pages/shared/projects/ProjectTracking/phaseLockingTypes';
 
@@ -73,8 +74,9 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
   const [phaseToLock, setPhaseToLock] = useState<string | null>(null);
   const [lockAllDialogOpen, setLockAllDialogOpen] = useState(false);
   
-  // Get active phase
+  // Get active phase and its index (for payment status)
   const activePhase = useMemo(() => getActivePhase(phases, phaseStates), [phases, phaseStates]);
+  const activePhaseIndex = activePhase ? phases.indexOf(activePhase) : null;
   
   // Check if all phases are locked (initial setup complete)
   const allPhasesLocked = useMemo(() => {
@@ -443,6 +445,9 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
           <div className="flex gap-3 min-w-max [&::-webkit-scrollbar]:hidden">
             {phaseProgress.map((phase, index) => {
               const color = phaseColors[index % phaseColors.length];
+              const paymentStatus = getPhasePaymentStatus(index, phases.length, activePhaseIndex);
+              const paymentLabel = paymentStatus === 'done' ? 'Done' : paymentStatus === 'pending' ? 'Pending' : 'Not yet started';
+              const paymentClass = paymentStatus === 'done' ? 'text-green-700 bg-green-100' : paymentStatus === 'pending' ? 'text-amber-700 bg-amber-100' : 'text-slate-500 bg-slate-100';
               return (
                 <div key={phase.phase} className="flex-shrink-0 w-56 bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
                   <div className="flex items-start justify-between mb-2.5">
@@ -469,6 +474,11 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div className="mb-1.5">
+                    <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${paymentClass}`}>
+                      Payment: {paymentLabel}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[9px] text-black font-bold">

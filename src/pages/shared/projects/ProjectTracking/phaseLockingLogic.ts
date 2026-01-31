@@ -298,3 +298,35 @@ export const getNextPhase = (
   }
   return phases[currentIndex + 1];
 };
+
+/** Payment status for phase: Done (paid upfront), Pending (next to pay), Not yet started */
+export type PhasePaymentStatus = 'done' | 'pending' | 'not_yet_started';
+
+/**
+ * Get payment status for a phase in Project Overview.
+ * - 3-phase: Phase 1 = Done. When phase 1 is active → Phase 2 = Pending. When phase 2 is active → Phase 3 = Pending.
+ * - 4/5/6-phase: Phase 1 & 2 = Done. When phase 1 active → Phase 3 = Pending; phase 2 active → Phase 4 = Pending; etc.
+ * @param phaseIndex 0-based index of the phase
+ * @param totalPhases number of phases (3, 4, 5, or 6)
+ * @param activePhaseIndex 0-based index of the currently active phase, or null if none
+ */
+export const getPhasePaymentStatus = (
+  phaseIndex: number,
+  totalPhases: number,
+  activePhaseIndex: number | null
+): PhasePaymentStatus => {
+  if (totalPhases === 3) {
+    // 3-phase: only Phase 1 paid initially
+    if (phaseIndex === 0) return 'done';
+    if (activePhaseIndex === 0 && phaseIndex === 1) return 'pending';
+    if (activePhaseIndex === 1 && phaseIndex === 2) return 'pending';
+    return 'not_yet_started';
+  }
+  // 4, 5, or 6 phases: Phase 1 & 2 paid initially
+  if (phaseIndex <= 1) return 'done';
+  if (activePhaseIndex === null) return 'not_yet_started';
+  // When phase K is active, phase K+2 payment becomes Pending
+  if (phaseIndex === activePhaseIndex + 2) return 'pending';
+  if (phaseIndex < activePhaseIndex + 2) return 'done'; // already passed
+  return 'not_yet_started';
+};

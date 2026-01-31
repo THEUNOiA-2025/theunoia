@@ -372,7 +372,13 @@ export const DashboardLayout = () => {
         </div>
       </header>
 
-      <main className={cn('w-full', location.pathname === '/messages' ? '' : 'p-6 pt-4')}>
+      <main
+        className={cn(
+          'w-full min-h-screen',
+          location.pathname === '/messages' ? '' : 'p-6 pt-4',
+          location.pathname === '/profile' && 'bg-[#faf7f1]'
+        )}
+      >
         <Outlet />
       </main>
     </div>
