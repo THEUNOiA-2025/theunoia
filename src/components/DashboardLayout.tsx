@@ -538,6 +538,11 @@ export const DashboardLayout = () => {
               <DropdownMenuItem onClick={() => navigate('/calendar')}>
                 Calendar
               </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => navigate('/admin')}>
+                  Admin Panel
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => navigate('/profile')}>
                 Profile
               </DropdownMenuItem>

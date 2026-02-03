@@ -24,24 +24,19 @@ interface Section {
   content: string[];
 }
 
-/** Privacy Policy – DigiLocker & Aadhaar Verification (exact content, do not modify) */
+/** Full Terms: First section = DigiLocker & Other Verification */
 const getTermsSections = (): Section[] => [
   {
-    id: "digilocker-privacy",
+    id: "digilocker-verification",
     number: "1",
-    title: "Privacy Policy – DigiLocker & Aadhaar Verification",
+    title: "DigiLocker & Other Verification",
     content: [
-      "Purpose of Aadhaar Verification\nTHEUNOiA uses DigiLocker's consent-based Aadhaar verification solely to prevent fake, duplicate, or impersonated student accounts.",
-      "Use of DigiLocker Services\nVerification is initiated only by the user after explicit consent. No unauthorized access is performed.",
-      "Data Accessed During Verification\nTHEUNOiA does not access or store Aadhaar numbers, documents, PDFs, XMLs, biometrics, or sensitive personal data.",
-      "Duplicate Account Prevention\nA non-reversible technical identifier provided by DigiLocker may be stored to ensure one person maintains only one account.",
-      "Data Storage & Retention\nOnly verification status, timestamp, and technical identifier are retained for compliance and audit purposes.",
-      "User Consent\nVerification proceeds only after explicit user consent via DigiLocker.",
-      "Data Sharing\nTHEUNOiA does not sell, rent, or share Aadhaar-related data with third parties.",
-      "Security Measures\nAll interactions occur through secure backend systems using HTTPS and access controls.",
-      "Regulatory Compliance\nTHEUNOiA complies with DigiLocker guidelines and Indian IT laws.",
-      "User Rights\nUsers may withdraw consent or request deletion where legally permissible.",
-      "Contact support@theunoia.com"
+      "1. Identity Verification Requirement\nTHEUNOiA may require students to complete identity verification through DigiLocker to prevent fraudulent or duplicate accounts.",
+      "2. User Consent and Redirection\nBy proceeding, the user consents to redirection to DigiLocker and authorizes permitted verification data sharing.",
+      "3. Duplicate Account Policy\nOnly one verified account per individual is permitted. Duplicate accounts linked to the same verified identity may be suspended or removed.",
+      "4. Data Handling\nTHEUNOiA does not store Aadhaar numbers or Aadhaar documents. Only verification status and a non-reversible technical identifier may be retained.",
+      "5. Limitation of Liability\nTHEUNOiA is not responsible for errors, delays, or outages related to DigiLocker services.",
+      "6. Modifications\nTHEUNOiA reserves the right to modify verification requirements to comply with applicable laws and platform requirements."
     ]
   },
   {
@@ -436,6 +431,8 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
   const title = type === "client" ? "Client Service Agreement" : type === "freelancer" ? "Freelancer Agreement" : "Terms & Conditions";
   const effectiveDate = "January 20, 2026";
   const isTermsSectionBySection = type === "terms" && typeof onAllSectionsAccepted === "function";
+  /** Signup terms dialog: slightly reduced (medium) size, not full width */
+  const isMediumSize = isTermsSectionBySection;
 
   useEffect(() => {
     if (open && isTermsSectionBySection) {
@@ -446,6 +443,8 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
 
   const scrollToSection = (index: number) => {
     if (isTermsSectionBySection) {
+      // Only allow going to sections that are accepted or the immediate next one (must accept in order)
+      if (index > acceptedUpTo + 1) return;
       setActiveSection(index);
       if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
       return;
@@ -507,10 +506,15 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] p-0 gap-0 overflow-hidden bg-background">
-        <div className="flex h-[85vh]">
+      <DialogContent
+        className={cn(
+          "p-0 gap-0 overflow-hidden bg-background",
+          isMediumSize ? "max-w-4xl max-h-[88vh]" : "max-w-5xl max-h-[90vh]"
+        )}
+      >
+        <div className={cn("flex", isMediumSize ? "h-[80vh]" : "h-[85vh]")}>
           {/* Sidebar Navigation */}
-          <div className="w-56 bg-muted/30 border-r border-border flex flex-col">
+          <div className={cn("bg-muted/30 border-r border-border flex flex-col shrink-0", isMediumSize ? "w-52" : "w-56")}>
             {/* THEUNOiA Logo */}
             <div className="p-4 border-b border-border flex items-center justify-center">
               <img src="/images/theunoia-logo.png" alt="THEUNOiA" className="h-10 object-contain" />
@@ -521,15 +525,19 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
               <nav className="space-y-1 px-2">
                 {sections.map((section, index) => {
                   const isAccepted = isTermsSectionBySection && acceptedUpTo >= index;
+                  const isLocked = isTermsSectionBySection && index > acceptedUpTo + 1;
                   return (
                     <button
                       key={section.id}
+                      type="button"
+                      disabled={isLocked}
                       onClick={() => scrollToSection(index)}
                       className={cn(
                         "w-full flex items-start gap-3 px-2 py-2.5 text-left rounded-lg transition-all",
                         activeSection === index
                           ? "bg-primary/10"
-                          : "hover:bg-muted/50"
+                          : !isLocked && "hover:bg-muted/50",
+                        isLocked && "cursor-not-allowed opacity-50 pointer-events-none"
                       )}
                     >
                       <div className="relative flex items-center">
@@ -563,7 +571,7 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0">
             {/* Header */}
             <div className="px-8 py-6 border-b border-border">
               <h1 className="text-2xl font-bold text-secondary">{title}</h1>
