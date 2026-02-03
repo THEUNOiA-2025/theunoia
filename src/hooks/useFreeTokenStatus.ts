@@ -26,14 +26,21 @@ async function fetchFreeTokenStatus(userId: string): Promise<FreeTokenStatus> {
   // if (error) throw error;
   // return data as FreeTokenStatus;
 
-  const profileRes = await supabase.from('user_profiles').select('first_name, last_name').eq('user_id', userId).single();
-  const verificationRes = await supabase.from('student_verifications').select('verification_status').eq('user_id', userId).maybeSingle();
+  const profileRes = await supabase.from('user_profiles').select('first_name, last_name').eq('user_id', userId);
+  console.log("User ID:", userId);
+  console.log("Data:", profileRes.data);
+  console.log("Error:", profileRes.error);
+
+  const verificationRes = await supabase.from('student_verifications').select('verification_status').eq('user_id', userId);
+  console.log("User ID:", userId);
+  console.log("Data:", verificationRes.data);
+  console.log("Error:", verificationRes.error);
   // @ts-expect-error Supabase generated types cause "excessively deep" instantiation here; safe at runtime
   const bidsRaw = await supabase.from('bids').select('id', { count: 'exact', head: true }).eq('user_id', userId);
   const bidsPlaced = typeof (bidsRaw as { count?: number }).count === 'number' ? (bidsRaw as { count: number }).count : 0;
 
-  const profileComplete = !!(profileRes.data?.first_name && profileRes.data?.last_name);
-  const studentVerified = verificationRes.data?.verification_status === 'approved';
+  const profileComplete = !!(profileRes.data?.[0]?.first_name && profileRes.data?.[0]?.last_name);
+  const studentVerified = verificationRes.data?.[0]?.verification_status === 'approved';
 
   return {
     signupBonus: { granted: true, grantedAt: null },

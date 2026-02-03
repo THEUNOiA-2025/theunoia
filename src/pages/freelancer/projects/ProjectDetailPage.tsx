@@ -117,11 +117,14 @@ const ProjectDetailPage = () => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("first_name, last_name")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (!error && data) {
-        setLeadProfile(data);
+        .eq("user_id", user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
+      if (!error && data?.[0]) {
+        setLeadProfile(data[0]);
       }
     } catch (error) {
       console.error("Error fetching lead profile:", error);
@@ -150,11 +153,14 @@ const ProjectDetailPage = () => {
       const { data, error } = await supabase
         .from('freelancer_access')
         .select('has_access')
-        .eq('user_id', user.id)
-        .single();
-      
+        .eq('user_id', user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
       if (error && error.code !== 'PGRST116') throw error;
-      setIsVerifiedStudent(data?.has_access || false);
+      setIsVerifiedStudent(data?.[0]?.has_access || false);
     } catch (error) {
       console.error('Error checking verification:', error);
     }
@@ -167,22 +173,29 @@ const ProjectDetailPage = () => {
       const { data, error } = await supabase
         .from("user_projects")
         .select("*")
-        .eq("id", id)
-        .single();
+        .eq("id", id);
+
+      console.log("Project ID:", id);
+      console.log("Data:", data);
+      console.log("Error:", error);
 
       if (error) throw error;
-      setProject(data as unknown as Project);
-      
+      const projectRow = data?.[0];
+      setProject(projectRow as unknown as Project);
+
       // Fetch client profile
-      if (data?.user_id) {
+      if (projectRow?.user_id) {
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("first_name, last_name, city")
-          .eq("user_id", data.user_id)
-          .single();
-        
-        if (!profileError && profileData) {
-          setClientProfile(profileData as ClientProfile);
+          .eq("user_id", projectRow.user_id);
+
+        console.log("User ID:", projectRow.user_id);
+        console.log("Data:", profileData);
+        console.log("Error:", profileError);
+
+        if (!profileError && profileData?.[0]) {
+          setClientProfile(profileData[0] as ClientProfile);
         }
       }
     } catch (error) {
@@ -235,14 +248,17 @@ const ProjectDetailPage = () => {
         return;
       }
 
-      const { data: existingBid } = await supabase
+      const { data: existingBid, error: existingBidError } = await supabase
         .from("bids")
         .select("id")
         .eq("project_id", id)
-        .eq("freelancer_id", user.id)
-        .single();
+        .eq("freelancer_id", user.id);
 
-      if (existingBid) {
+      console.log("User ID:", user?.id);
+      console.log("Data:", existingBid);
+      console.log("Error:", existingBidError);
+
+      if (existingBid?.[0]) {
         toast.error("You have already placed a bid on this project");
         return;
       }

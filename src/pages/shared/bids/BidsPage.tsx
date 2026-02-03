@@ -113,8 +113,11 @@ export default function BidsPage() {
       const { data: bidData, error: bidFetchError } = await supabase
         .from('bids')
         .select('project_id')
-        .eq('id', bidId)
-        .single();
+        .eq('id', bidId);
+
+      console.log("Bid ID:", bidId);
+      console.log("Data:", bidData);
+      console.log("Error:", bidFetchError);
 
       if (bidFetchError) throw bidFetchError;
 
@@ -131,7 +134,7 @@ export default function BidsPage() {
         const { error: projectUpdateError } = await supabase
           .from('user_projects')
           .update({ status: 'in_progress' })
-          .eq('id', bidData.project_id)
+          .eq('id', projectId)
           .eq('status', 'open'); // Only update if still 'open'
 
         if (projectUpdateError) {

@@ -20,14 +20,17 @@ export const useAdminRole = () => {
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .maybeSingle();
+          .eq('role', 'admin');
+
+        console.log("User ID:", user?.id);
+        console.log("Data:", data);
+        console.log("Error:", error);
 
         if (error) {
           console.error('Error checking admin role:', error);
           setIsAdmin(false);
         } else {
-          setIsAdmin(!!data);
+          setIsAdmin(!!data?.[0]);
         }
       } catch (err) {
         console.error('Error checking admin role:', err);

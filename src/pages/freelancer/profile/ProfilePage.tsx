@@ -189,10 +189,15 @@ const ProfilePage = () => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
       if (error) throw error;
-      const row = data as Record<string, unknown>;
+      const row = (data?.[0] ?? null) as Record<string, unknown> | null;
+      if (!row) return;
       setProfile({
         firstName: (row.first_name as string) || "",
         lastName: (row.last_name as string) || "",
@@ -218,10 +223,14 @@ const ProfilePage = () => {
       const { data, error } = await supabase
         .from("student_verifications")
         .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .eq("user_id", user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
       if (error && error.code !== "PGRST116") throw error;
-      setVerification(data as VerificationState | null);
+      setVerification((data?.[0] ?? null) as VerificationState | null);
     } catch (error) {
       console.error("Error fetching verification:", error);
     }

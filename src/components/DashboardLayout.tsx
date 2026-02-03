@@ -118,20 +118,26 @@ export const DashboardLayout = () => {
           const { data, error } = await supabase
             .from('user_profiles')
             .select('*')
-            .eq('user_id', user.id)
-            .single();
+            .eq('user_id', user.id);
+
+          console.log("User ID:", user?.id);
+          console.log("Data:", data);
+          console.log("Error:", error);
 
           if (error) throw error;
-          setProfile(data);
+          setProfile(data?.[0] ?? null);
 
           // Check verification status
-          const { data: verification } = await supabase
+          const { data: verification, error: verificationError } = await supabase
             .from('student_verifications')
             .select('verification_status')
-            .eq('user_id', user.id)
-            .maybeSingle();
+            .eq('user_id', user.id);
 
-          setIsVerifiedStudent(verification?.verification_status === 'approved');
+          console.log("User ID:", user?.id);
+          console.log("Data:", verification);
+          console.log("Error:", verificationError);
+
+          setIsVerifiedStudent(verification?.[0]?.verification_status === 'approved');
         } catch (error) {
           console.error('Error fetching profile:', error);
         } finally {

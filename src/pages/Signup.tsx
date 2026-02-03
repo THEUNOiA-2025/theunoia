@@ -217,7 +217,7 @@ const Signup = () => {
                     <RadioGroupItem value="student" id="student" />
                     <Label htmlFor="student" className="flex-1 cursor-pointer">
                       <div className="font-medium">Student</div>
-                      <div className="text-sm text-muted-foreground">Post projects and access freelancing features after verification</div>
+                      <div className="text-sm text-muted-foreground">Individual contractor</div>
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
@@ -234,7 +234,10 @@ const Signup = () => {
                 <Checkbox
                   id="terms"
                   checked={termsAccepted}
-                  onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                  onCheckedChange={(checked) => {
+                    // Only allow unchecking by click. Checking is only allowed after accepting all sections in the Terms dialog.
+                    if (checked === false) setTermsAccepted(false);
+                  }}
                   className="mt-0.5"
                 />
                 <div className="flex-1">

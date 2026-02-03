@@ -47,19 +47,23 @@ const CheckoutPage = () => {
 
     const fetchProfile = async () => {
       setProfileLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('first_name, last_name, email, city, pin_code')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (data) {
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
+      const row = data?.[0];
+      if (row) {
         setProfile({
-          firstName: data.first_name,
-          lastName: data.last_name,
-          email: data.email,
-          city: data.city || '',
-          pinCode: data.pin_code || '',
+          firstName: row.first_name,
+          lastName: row.last_name,
+          email: row.email,
+          city: row.city || '',
+          pinCode: row.pin_code || '',
         });
       }
       setProfileLoading(false);

@@ -60,8 +60,11 @@ export default function CommunityPage() {
       const { data: verification, error: verError } = await supabase
         .from('student_verifications')
         .select('verification_status, college_id, colleges(id, name, short_name, city, state)')
-        .eq('user_id', user?.id)
-        .maybeSingle();
+        .eq('user_id', user?.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", verification);
+      console.log("Error:", verError);
 
       if (verError) {
         console.error('Error fetching verification:', verError);
@@ -70,20 +73,21 @@ export default function CommunityPage() {
         return;
       }
 
-      if (!verification || verification.verification_status !== 'approved') {
+      const verificationRow = verification?.[0];
+      if (!verificationRow || verificationRow.verification_status !== 'approved') {
         setIsVerified(false);
         setLoading(false);
         return;
       }
 
       setIsVerified(true);
-      setUserCollege(verification.colleges as any);
+      setUserCollege(verificationRow.colleges as any);
 
       // Fetch community members (verified students from same college)
       const { data: membersData, error: membersError } = await supabase
         .from('student_verifications')
         .select('user_id, user_profiles(user_id, first_name, last_name, bio, profile_picture_url)')
-        .eq('college_id', verification.college_id)
+        .eq('college_id', verificationRow.college_id)
         .eq('verification_status', 'approved')
         .neq('user_id', user?.id);
 
@@ -99,7 +103,7 @@ export default function CommunityPage() {
         .from('user_projects')
         .select('*')
         .eq('is_community_task', true)
-        .eq('community_college_id', verification.college_id)
+        .eq('community_college_id', verificationRow.college_id)
         .eq('status', 'open')
         .order('created_at', { ascending: false });
 

@@ -101,44 +101,51 @@ const StudentVerificationPage = () => {
       // Fetch states first using RPC
       fetchStates();
       
-      const [profileRes, verificationRes] = await Promise.all([
-        supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id).maybeSingle(),
-      ]);
+      const profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id);
+      console.log("User ID:", user?.id);
+      console.log("Data:", profileRes.data);
+      console.log("Error:", profileRes.error);
 
-      if (profileRes.data) {
+      const verificationRes = await supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id);
+      console.log("User ID:", user?.id);
+      console.log("Data:", verificationRes.data);
+      console.log("Error:", verificationRes.error);
+
+      const profileRow = profileRes.data?.[0];
+      if (profileRow) {
         setProfile({
-          firstName: profileRes.data.first_name || "",
-          lastName: profileRes.data.last_name || "",
-          email: profileRes.data.email || "",
+          firstName: profileRow.first_name || "",
+          lastName: profileRow.last_name || "",
+          email: profileRow.email || "",
         });
       }
 
-      if (verificationRes.data) {
-        setVerification(verificationRes.data);
-        setSelectedCollege(verificationRes.data.college_id || "");
+      const verificationRow = verificationRes.data?.[0];
+      if (verificationRow) {
+        setVerification(verificationRow);
+        setSelectedCollege(verificationRow.college_id || "");
         setFormData({
-          instituteEmail: verificationRes.data.institute_email || "",
-          enrollmentId: verificationRes.data.enrollment_id || "",
+          instituteEmail: verificationRow.institute_email || "",
+          enrollmentId: verificationRow.enrollment_id || "",
         });
-        
+
         // Check if email is already verified
-        if (verificationRes.data.email_verified) {
+        if (verificationRow.email_verified) {
           setEmailVerificationStep('verified');
         }
-        
+
         // If existing verification has a college, set the college data and state
-        if (verificationRes.data.colleges) {
-          setSelectedCollegeData(verificationRes.data.colleges);
-          setSelectedState(verificationRes.data.colleges.state || "");
+        if (verificationRow.colleges) {
+          setSelectedCollegeData(verificationRow.colleges);
+          setSelectedState(verificationRow.colleges?.state || "");
         }
         
         // Load ID card if exists
-        if (verificationRes.data.id_card_url) {
+        if (verificationRow.id_card_url) {
           try {
             const { data: signedUrlData } = await supabase.storage
               .from('student-id-cards')
-              .createSignedUrl(verificationRes.data.id_card_url, 3600);
+              .createSignedUrl(verificationRow.id_card_url, 3600);
             
             if (signedUrlData?.signedUrl) {
               setIdCardPreview(signedUrlData.signedUrl);

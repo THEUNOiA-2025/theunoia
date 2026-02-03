@@ -57,24 +57,28 @@ const EditProfilePage = () => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
 
       if (error) throw error;
 
-      if (data) {
+      const row = data?.[0];
+      if (row) {
         setProfile({
-          firstName: data.first_name || "",
-          lastName: data.last_name || "",
-          email: data.email || "",
-          gender: data.gender || "",
-          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : null,
-          city: data.city || "",
-          pinCode: data.pin_code || "",
-          bio: data.bio || "",
-          phone: data.phone || "",
-          website: data.website || "",
-          billingAddress: data.billing_address || "",
+          firstName: row.first_name || "",
+          lastName: row.last_name || "",
+          email: row.email || "",
+          gender: row.gender || "",
+          dateOfBirth: row.date_of_birth ? new Date(row.date_of_birth) : null,
+          city: row.city || "",
+          pinCode: row.pin_code || "",
+          bio: row.bio || "",
+          phone: row.phone || "",
+          website: row.website || "",
+          billingAddress: row.billing_address || "",
         });
       }
     } catch (error) {

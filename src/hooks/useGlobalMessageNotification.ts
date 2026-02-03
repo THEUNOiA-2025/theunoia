@@ -37,25 +37,33 @@ export const useGlobalMessageNotification = () => {
           const { data: conversation, error: convError } = await supabase
             .from('conversations')
             .select('client_id, freelancer_id')
-            .eq('id', newMessage.conversation_id)
-            .single();
+            .eq('id', newMessage.conversation_id);
 
-          if (convError || !conversation) return;
+          console.log("Conversation ID:", newMessage.conversation_id);
+          console.log("Data:", conversation);
+          console.log("Error:", convError);
+
+          const convRow = conversation?.[0];
+          if (convError || !convRow) return;
 
           // Only notify if user is client or freelancer in this conversation
-          if (conversation.client_id !== user.id && conversation.freelancer_id !== user.id) {
+          if (convRow.client_id !== user.id && convRow.freelancer_id !== user.id) {
             return;
           }
 
           // Fetch sender profile
-          const { data: senderProfile } = await supabase
+          const { data: senderProfile, error: senderError } = await supabase
             .from('user_profiles')
             .select('first_name, last_name')
-            .eq('user_id', newMessage.sender_id)
-            .single();
+            .eq('user_id', newMessage.sender_id);
 
-          const senderName = senderProfile 
-            ? `${senderProfile.first_name} ${senderProfile.last_name}`.trim() 
+          console.log("Sender ID:", newMessage.sender_id);
+          console.log("Data:", senderProfile);
+          console.log("Error:", senderError);
+
+          const senderRow = senderProfile?.[0];
+          const senderName = senderRow
+            ? `${senderRow.first_name} ${senderRow.last_name}`.trim()
             : 'Someone';
 
           // Truncate message content for preview

@@ -178,11 +178,14 @@ const ProjectsPage = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('user_type')
-        .eq('user_id', user.id)
-        .single();
-      
+        .eq('user_id', user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
       if (error) throw error;
-      const isStudent = data?.user_type === 'student';
+      const isStudent = data?.[0]?.user_type === 'student';
       setIsStudentUser(isStudent);
       
       // Set default tab based on user type
@@ -212,21 +215,27 @@ const ProjectsPage = () => {
       const { data: accessData, error: accessError } = await supabase
         .from('freelancer_access')
         .select('has_access')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
+        .eq('user_id', user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", accessData);
+      console.log("Error:", accessError);
+
       if (accessError) throw accessError;
-      setIsVerifiedStudent(accessData?.has_access || false);
+      setIsVerifiedStudent(accessData?.[0]?.has_access || false);
 
       // Get user's college ID for community tasks
-      const { data: verificationData } = await supabase
+      const { data: verificationData, error: verificationError } = await supabase
         .from('student_verifications')
         .select('college_id')
         .eq('user_id', user.id)
-        .eq('verification_status', 'approved')
-        .maybeSingle();
+        .eq('verification_status', 'approved');
 
-      setUserCollegeId(verificationData?.college_id || null);
+      console.log("User ID:", user?.id);
+      console.log("Data:", verificationData);
+      console.log("Error:", verificationError);
+
+      setUserCollegeId(verificationData?.[0]?.college_id || null);
     } catch (error) {
       console.error('Error checking verification:', error);
     }
@@ -239,11 +248,14 @@ const ProjectsPage = () => {
       const { data, error } = await supabase
         .from('freelancer_credits')
         .select('balance')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
 
       if (error) throw error;
-      setCreditBalance(data?.balance || 0);
+      setCreditBalance(data?.[0]?.balance || 0);
     } catch (error) {
       console.error('Error fetching credit balance:', error);
     }
@@ -637,18 +649,22 @@ const ProjectsPage = () => {
         .from("bids")
         .select("freelancer_id")
         .eq("project_id", projectId)
-        .eq("status", "accepted")
-        .maybeSingle();
+        .eq("status", "accepted");
+
+      console.log("Project ID:", projectId);
+      console.log("Data:", acceptedBid);
+      console.log("Error:", error);
 
       if (error) throw error;
 
-      if (!acceptedBid) {
+      const bidRow = acceptedBid?.[0];
+      if (!bidRow) {
         toast.error("No accepted bid found for this project");
         return;
       }
 
       setProjectToRate(project);
-      setAcceptedFreelancerId(acceptedBid.freelancer_id);
+      setAcceptedFreelancerId(bidRow.freelancer_id);
       setRatingDialogOpen(true);
     } catch (error) {
       console.error("Error fetching accepted bid:", error);

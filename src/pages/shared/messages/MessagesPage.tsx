@@ -32,12 +32,16 @@ export default function MessagesPage() {
   const { data: currentUserProfile } = useQuery({
     queryKey: ['currentUserProfile', user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('first_name, last_name, profile_picture_url')
-        .eq('user_id', user?.id)
-        .single();
-      return data;
+        .eq('user_id', user?.id);
+
+      console.log("User ID:", user?.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
+      return data?.[0] ?? null;
     },
     enabled: !!user?.id,
   });
@@ -77,11 +81,14 @@ export default function MessagesPage() {
           const otherUserId = convo.client_id === user?.id ? convo.freelancer_id : convo.client_id;
           
           // Fetch other user's profile
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
             .select('first_name, last_name, profile_picture_url')
-            .eq('user_id', otherUserId)
-            .single();
+            .eq('user_id', otherUserId);
+
+          console.log("User ID:", otherUserId);
+          console.log("Data:", profile);
+          console.log("Error:", profileError);
 
           // Fetch last message
           const { data: lastMessage } = await supabase
@@ -89,8 +96,7 @@ export default function MessagesPage() {
             .select('content')
             .eq('conversation_id', convo.id)
             .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
+            .limit(1);
 
           // Count unread messages
           const { count: unreadCount } = await supabase
@@ -106,9 +112,9 @@ export default function MessagesPage() {
             project: convo.user_projects,
             project_title: convo.user_projects?.title || 'Unknown Project',
             other_user_id: otherUserId,
-            other_user_name: profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown User',
-            other_user_avatar: profile?.profile_picture_url,
-            last_message: lastMessage?.content,
+            other_user_name: profile?.[0] ? `${profile[0].first_name} ${profile[0].last_name}` : 'Unknown User',
+            other_user_avatar: profile?.[0]?.profile_picture_url,
+            last_message: lastMessage?.[0]?.content,
             last_message_at: convo.last_message_at,
             unread_count: unreadCount || 0,
             is_client: convo.client_id === user?.id,
