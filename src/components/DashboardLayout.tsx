@@ -570,7 +570,7 @@ export const DashboardLayout = () => {
         className={cn(
           'w-full min-h-screen',
           location.pathname === '/messages' ? '' : location.pathname === '/leadership' ? 'p-0' : 'p-6 pt-4',
-          (location.pathname === '/profile' || location.pathname === '/leadership') && 'bg-[#faf7f1]'
+          (location.pathname === '/profile' || location.pathname.startsWith('/profile/') || location.pathname === '/leadership') && 'bg-[#faf7f1]'
         )}
       >
         <Outlet />

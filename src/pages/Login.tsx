@@ -96,13 +96,6 @@ const Login = () => {
               ))}
             </div>
           </div>
-          
-          <blockquote className="space-y-2">
-            <p className="text-muted-foreground text-base leading-relaxed">
-              "Getting things done is simple. Just post what you need, receive bids from skilled individuals, and pick the one that fits your budget."
-            </p>
-            <footer className="text-sm text-foreground font-medium">- James Patterson, Tech Lead</footer>
-          </blockquote>
         </div>
       </div>
 

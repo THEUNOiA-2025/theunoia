@@ -127,13 +127,6 @@ const Signup = () => {
               ))}
             </div>
           </div>
-          
-          <blockquote className="space-y-2">
-            <p className="text-muted-foreground text-base leading-relaxed">
-              "THEUNOiA has transformed how my team collaborates! The intuitive task board and real-time updates keep everyone on the same page."
-            </p>
-            <footer className="text-sm text-foreground font-medium">- Sofia Davis, Product Manager</footer>
-          </blockquote>
         </div>
       </div>
 
@@ -217,7 +210,7 @@ const Signup = () => {
                     <RadioGroupItem value="student" id="student" />
                     <Label htmlFor="student" className="flex-1 cursor-pointer">
                       <div className="font-medium">Student</div>
-                      <div className="text-sm text-muted-foreground">Individual contractor</div>
+                      <div className="text-sm text-muted-foreground">Independent contractor</div>
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
