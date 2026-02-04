@@ -48,6 +48,8 @@ const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 
 // Client: view freelancer dashboard
 const FreelancerViewPage = lazy(() => import("./pages/client/freelancer/FreelancerViewPage"));
+// Client: post new project
+const PostProjectPage = lazy(() => import("./pages/client/projects/PostProjectPage"));
 
 const queryClient = new QueryClient();
 
@@ -91,6 +93,14 @@ const App = () => (
               
               {/* Dashboard routes with shared layout */}
               <Route element={<DashboardLayout />}>
+                <Route
+                  path="/projects/post-project"
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <PostProjectPage />
+                    </Suspense>
+                  }
+                />
                 <Route 
                   path="/projects" 
                   element={<RoleBasedRoute pageType="projects" />} 
