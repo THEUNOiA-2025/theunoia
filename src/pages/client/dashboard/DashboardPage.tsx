@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,6 +10,13 @@ import {
   Calendar,
   CalendarDays,
   HeadphonesIcon,
+  Check,
+  AlertCircle,
+  Folder,
+  Clock,
+  CheckCircle2,
+  Activity,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -60,6 +68,23 @@ function getActionRequiredSummary(actions: { id: number }[]): string {
   const verb = total === 1 ? "needs" : "need";
   return `${total} ${taskWord} ${verb} your attention`;
 }
+
+// Performance analytics per project (from Project Tracking: tasks + phases).
+const MOCK_PERF_METRICS = [
+  { totalTasks: 12, inProgress: 2, completed: 9, overdue: 0, phasesCompleted: 3, totalPhases: 5, activePhaseNumber: 3, activePhaseName: "Review", lastActivity: "2 hours ago" },
+  { totalTasks: 18, inProgress: 5, completed: 10, overdue: 1, phasesCompleted: 2, totalPhases: 5, activePhaseNumber: 2, activePhaseName: "Drafting", lastActivity: "1 day ago" },
+  { totalTasks: 8, inProgress: 3, completed: 2, overdue: 2, phasesCompleted: 1, totalPhases: 5, activePhaseNumber: 1, activePhaseName: "Discovery", lastActivity: "3 days ago" },
+];
+
+// Tasks completed per week (velocity): x = week label, y = count
+const MOCK_TASKS_PER_WEEK: { week: string; count: number }[] = [
+  { week: "W1", count: 4 },
+  { week: "W2", count: 7 },
+  { week: "W3", count: 5 },
+  { week: "W4", count: 9 },
+  { week: "W5", count: 6 },
+  { week: "W6", count: 8 },
+];
 
 const DashboardPage = () => {
   const [projectIndex, setProjectIndex] = useState(0);
@@ -174,29 +199,29 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Performance Metrics - plain container, no graph */}
-          <div className="bg-white dark:bg-white/5 p-3 rounded-lg shadow-sm border border-black/5">
-            <div className="flex justify-between items-center mb-2">
+          {/* Performance Metrics */}
+          <div className="bg-white dark:bg-white/5 p-3 rounded-lg shadow-sm border border-black/5 flex flex-col min-h-0">
+            <div className="flex justify-between items-center mb-5">
               <h3 className="text-[#121118] dark:text-white text-base font-bold">
                 Performance Metrics
               </h3>
-              <div className="flex items-center gap-1.5 bg-secondary p-0.5 rounded-md">
+              <div className="flex items-center gap-1.5 bg-secondary/30 p-0.5 rounded-md">
                 <button
                   type="button"
                   onClick={() =>
-                    setMetricsProjectIndex((i) => (i === 0 ? 1 : i - 1))
+                    setMetricsProjectIndex((i) => (i === 0 ? MOCK_PROJECTS.length - 1 : i - 1))
                   }
                   className="p-0.5 hover:opacity-80 rounded transition-opacity"
                 >
                   <ChevronLeft className="w-3.5 h-3.5 text-secondary-foreground" />
                 </button>
-                <span className="text-[10px] font-bold text-secondary-foreground px-1.5">
-                  Project {metricsProjectIndex + 1}
+                <span className="text-[10px] font-bold text-secondary-foreground px-1.5 whitespace-nowrap">
+                  Project {metricsProjectIndex + 1} of {MOCK_PROJECTS.length}
                 </span>
                 <button
                   type="button"
                   onClick={() =>
-                    setMetricsProjectIndex((i) => (i === 1 ? 0 : i + 1))
+                    setMetricsProjectIndex((i) => (i === MOCK_PROJECTS.length - 1 ? 0 : i + 1))
                   }
                   className="p-0.5 hover:opacity-80 rounded transition-opacity"
                 >
@@ -204,14 +229,185 @@ const DashboardPage = () => {
                 </button>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-2 py-3">
-              <p className="text-[10px] text-[#68608a] dark:text-gray-400">
-                Metrics for this project
-              </p>
-              <Button size="sm" className="bg-primary text-white h-7 text-[10px] font-bold px-3 rounded-lg hover:bg-primary/90 shadow-md shadow-primary/20">
-                View metrics
-              </Button>
-            </div>
+            {(() => {
+              const pm = MOCK_PERF_METRICS[metricsProjectIndex] ?? MOCK_PERF_METRICS[0];
+              const proj = MOCK_PROJECTS[metricsProjectIndex];
+              const projectTitle = proj?.title ?? "Project";
+              const onTrack = pm.overdue === 0;
+              const toDo = Math.max(0, pm.totalTasks - pm.inProgress - pm.completed);
+              const statusBars = [
+                { label: "To do", value: toDo, color: "bg-accent" },
+                { label: "In progress", value: pm.inProgress, color: "bg-secondary" },
+                { label: "Done", value: pm.completed, color: "bg-primary" },
+              ];
+              const phaseNum = pm.activePhaseNumber ?? 1;
+              const phaseName = pm.activePhaseName ?? "—";
+              return (
+                <div className="flex flex-col flex-1 min-h-0 gap-4">
+                  {/* Project title | On track (accent/green) | 3 of 5 phases completed */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h4 className="text-sm font-bold text-[#121118] dark:text-white truncate">
+                      {projectTitle}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {onTrack ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent/50 text-accent-foreground">
+                          <Check className="w-3 h-3" />
+                          On track
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          <AlertCircle className="w-3 h-3" />
+                          At risk
+                        </span>
+                      )}
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary/50 text-secondary-foreground">
+                        {pm.phasesCompleted} of {pm.totalPhases} phases completed
+                      </span>
+                    </div>
+                  </div>
+                  {/* Task status (pie, left) | separator | Tasks completed per week (velocity, right) */}
+                  <div className="flex flex-1 min-h-0 w-full gap-4">
+                    {/* Left: pie chart */}
+                    <div className="flex flex-col gap-2 shrink-0 items-center">
+                      <p className="text-[10px] font-medium text-[#68608a] dark:text-gray-400">Task status</p>
+                      <div
+                        className="shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border border-[#e8e6ed] dark:border-white/15 shadow-sm"
+                        style={{
+                          background: (() => {
+                            const total = statusBars.reduce((a, b) => a + b.value, 0) || 1;
+                            const p1 = (statusBars[0]!.value / total) * 100;
+                            const p2 = (statusBars[1]!.value / total) * 100;
+                            return `conic-gradient(hsl(var(--accent)) 0% ${p1}%, hsl(var(--secondary)) ${p1}% ${p1 + p2}%, hsl(var(--primary)) ${p1 + p2}% 100%)`;
+                          })(),
+                        }}
+                      />
+                      <div className="flex flex-row items-center justify-center gap-1.5 flex-wrap">
+                        {statusBars.map((s) => {
+                          const badgeClass = s.label === "To do" ? "bg-primary/20 text-primary border-primary/30" : s.label === "In progress" ? "bg-secondary/50 text-secondary-foreground border-secondary/40" : "bg-accent/50 text-accent-foreground border-accent/50";
+                          return (
+                            <span key={s.label} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}`}>
+                              <span className={`shrink-0 size-1.5 rounded-full ${
+                                s.label === "To do" ? "bg-primary" : s.label === "In progress" ? "bg-secondary-foreground" : "bg-accent-foreground"
+                              }`} />
+                              {s.label} {s.value}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Vertical separator – very light */}
+                    <div className="w-px shrink-0 bg-[#e8e6ed] dark:bg-white/10" aria-hidden />
+                    {/* Right: tasks completed per week (velocity) – bar chart; label below x-axis */}
+                    <div className="flex flex-col flex-1 min-w-0 -mt-0.5">
+                      {(() => {
+                        const maxCount = Math.max(...MOCK_TASKS_PER_WEEK.map((d) => d.count), 1);
+                        const yMax = Math.ceil(maxCount / 2) * 2 || 2;
+                        const yTicks = Array.from({ length: yMax + 1 }, (_, i) => i).filter((v) => v <= yMax);
+                        const chartHeight = 96;
+                        return (
+                          <>
+                            <div className="flex gap-1.5 flex-1 min-h-0" style={{ height: `${chartHeight + 28}px` }}>
+                              {/* Y-axis: ticks + axis line (scale = tasks completed) */}
+                              <div className="flex flex-col shrink-0 justify-between py-0.5 pr-1.5 border-r border-[#e8e6ed] dark:border-white/10">
+                                {yTicks.slice().reverse().map((tick) => (
+                                  <span key={tick} className="text-[9px] font-medium text-[#68608a] dark:text-gray-400 tabular-nums">
+                                    {tick}
+                                  </span>
+                                ))}
+                              </div>
+                              {/* Chart area: bars + x-axis line */}
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <div className="flex items-end gap-1 sm:gap-1.5 flex-1 min-h-0" style={{ height: `${chartHeight}px` }}>
+                                  {MOCK_TASKS_PER_WEEK.map(({ week, count }, i) => {
+                                    const barHeightPct = (count / yMax) * 100;
+                                    const variant = i % 3;
+                                    const barClass =
+                                      variant === 0
+                                        ? "bg-primary/20 dark:bg-primary/25 border-primary/20 dark:border-primary/30"
+                                        : variant === 1
+                                          ? "bg-secondary/20 dark:bg-secondary/25 border-secondary/20 dark:border-secondary/30"
+                                          : "bg-accent/20 dark:bg-accent/25 border-accent/20 dark:border-accent/30";
+                                    return (
+                                      <div key={week} className="flex flex-col flex-1 items-center gap-0.5 min-w-0 h-full">
+                                        <div className="w-full flex-1 flex flex-col justify-end items-center min-h-0">
+                                          <span className="text-[10px] font-semibold text-[#121118] dark:text-white mb-0.5 tabular-nums">
+                                            {count}
+                                          </span>
+                                          <div
+                                            className={`w-full max-w-[22px] rounded-t border transition-all ${barClass}`}
+                                            style={{ height: `${Math.max(barHeightPct, 6)}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-[9px] font-medium text-[#68608a] dark:text-gray-400 shrink-0 border-t border-[#e8e6ed] dark:border-white/10 pt-0.5 w-full text-center">
+                                          {week}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-[10px] font-medium text-[#68608a] dark:text-gray-400 text-center mt-1">
+                              Tasks completed per week
+                            </p>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  {/* Separator */}
+                  <hr className="border-[#dddbe6] dark:border-white/10" />
+                  {/* Task analytics – 4 matrix cards only */}
+                  <div>
+                    <p className="text-xs font-bold text-[#121118] dark:text-white mb-2">Task analytics</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      <div className="rounded-md p-2 border border-primary/30 bg-primary/10 dark:bg-primary/20">
+                        <Folder className="w-3.5 h-3.5 text-primary mx-auto mb-0.5 block" />
+                        <p className="text-xs font-bold text-[#121118] dark:text-white text-center">{pm.totalTasks}</p>
+                        <p className="text-[9px] font-bold text-[#121118] dark:text-white text-center">Total tasks</p>
+                      </div>
+                      <div className="rounded-md p-2 border border-secondary/40 bg-secondary/20 dark:bg-secondary/10">
+                        <Clock className="w-3.5 h-3.5 text-secondary-foreground mx-auto mb-0.5 block" />
+                        <p className="text-xs font-bold text-[#121118] dark:text-white text-center">{pm.inProgress}</p>
+                        <p className="text-[9px] font-bold text-[#121118] dark:text-white text-center">In progress</p>
+                      </div>
+                      <div className="rounded-md p-2 border border-accent/50 bg-accent/20 dark:bg-accent/10">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-accent-foreground mx-auto mb-0.5 block" />
+                        <p className="text-xs font-bold text-[#121118] dark:text-white text-center">{pm.completed}</p>
+                        <p className="text-[9px] font-bold text-[#121118] dark:text-white text-center">Completed</p>
+                      </div>
+                      <div className="rounded-md p-2 border border-secondary/40 bg-secondary/20 dark:bg-secondary/10">
+                        <AlertCircle className="w-3.5 h-3.5 text-secondary-foreground mx-auto mb-0.5 block" />
+                        <p className="text-xs font-bold text-[#121118] dark:text-white text-center">{pm.overdue}</p>
+                        <p className="text-[9px] font-bold text-[#121118] dark:text-white text-center">Overdue</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Separator */}
+                  <hr className="border-[#dddbe6] dark:border-white/10" />
+                  {/* Active phase (badge), Last activity (badge, centered), View full tracking */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/50 text-secondary-foreground border border-secondary/40 shrink-0">
+                      Active phase: Phase {phaseNum} – {phaseName}
+                    </span>
+                    <div className="flex-1 flex justify-center min-w-0">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-accent/50 text-accent-foreground border border-accent/50 shrink-0">
+                        <Activity className="w-3 h-3" />
+                        Last activity: {pm.lastActivity ?? "—"}
+                      </span>
+                    </div>
+                    <Link
+                      to={`/projects/${proj?.id ?? 1}`}
+                      className="text-[10px] font-semibold text-primary hover:underline inline-flex items-center gap-0.5 shrink-0"
+                    >
+                      View full tracking
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -289,12 +485,12 @@ const DashboardPage = () => {
                 Our primary support team is available 24/7 for enterprise clients.
               </p>
               <a
-                href="https://www.helpmenow-theunoia.com/help-center"
+                href="https://www.helpmenow-theunoia.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-8 px-4 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-colors"
               >
-                Submit Request
+                Raise Query
               </a>
             </div>
           </div>
