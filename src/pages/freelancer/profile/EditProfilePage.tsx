@@ -35,54 +35,65 @@ const EditProfilePage = () => {
   const [skillInput, setSkillInput] = useState("");
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
-      try {
-        const raw = localStorage.getItem(SKILLS_STORAGE_KEY(user.id));
-        if (raw) {
-          const parsed = JSON.parse(raw) as { role?: string; skills?: string[] };
-          if (parsed.role) setRole(parsed.role);
-          if (Array.isArray(parsed.skills)) setSkills(parsed.skills);
-        }
-      } catch {
-        // ignore invalid stored data
+    if (!user) return;
+
+    // First name, last name, email from account creation (auth) — show immediately
+    const meta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
+    setProfile((prev) => ({
+      ...prev,
+      firstName: meta?.firstName ?? prev.firstName,
+      lastName: meta?.lastName ?? prev.lastName,
+      email: user.email ?? prev.email,
+    }));
+
+    fetchProfile();
+    try {
+      const raw = localStorage.getItem(SKILLS_STORAGE_KEY(user.id));
+      if (raw) {
+        const parsed = JSON.parse(raw) as { role?: string; skills?: string[] };
+        if (parsed.role) setRole(parsed.role);
+        if (Array.isArray(parsed.skills)) setSkills(parsed.skills);
       }
+    } catch {
+      // ignore invalid stored data
     }
   }, [user]);
 
   const fetchProfile = async () => {
     if (!user?.id) return;
-    
+
+    // First name, last name, email come from account creation (auth), read-only
+    const meta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
+    const fromAuth = {
+      firstName: meta?.firstName ?? "",
+      lastName: meta?.lastName ?? "",
+      email: user.email ?? "",
+    };
+
     try {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", user.id);
 
-      console.log("User ID:", user?.id);
-      console.log("Data:", data);
-      console.log("Error:", error);
-
       if (error) throw error;
 
       const row = data?.[0];
-      if (row) {
-        setProfile({
-          firstName: row.first_name || "",
-          lastName: row.last_name || "",
-          email: row.email || "",
-          gender: row.gender || "",
-          dateOfBirth: row.date_of_birth ? new Date(row.date_of_birth) : null,
-          city: row.city || "",
-          pinCode: row.pin_code || "",
-          bio: row.bio || "",
-          phone: row.phone || "",
-          website: row.website || "",
-          billingAddress: row.billing_address || "",
-        });
-      }
+      setProfile({
+        ...fromAuth,
+        gender: row?.gender || "",
+        dateOfBirth: row?.date_of_birth ? new Date(row.date_of_birth) : null,
+        city: row?.city || "",
+        pinCode: row?.pin_code || "",
+        bio: row?.bio || "",
+        phone: row?.phone || "",
+        website: row?.website || "",
+        billingAddress: row?.billing_address || "",
+      });
     } catch (error) {
       console.error("Error fetching profile:", error);
+      // Still show name/email from auth even if user_profiles fails
+      setProfile((prev) => ({ ...prev, ...fromAuth }));
       toast.error("Failed to load profile data");
     }
   };
@@ -157,12 +168,14 @@ const EditProfilePage = () => {
             <CardTitle>Edit Profile</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <p className="text-sm text-muted-foreground">Name and email are from your account and cannot be changed here.</p>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
                   value={profile.firstName}
+                  readOnly
                   disabled
                   className="bg-muted"
                 />
@@ -172,6 +185,7 @@ const EditProfilePage = () => {
                 <Input
                   id="lastName"
                   value={profile.lastName}
+                  readOnly
                   disabled
                   className="bg-muted"
                 />
@@ -184,6 +198,7 @@ const EditProfilePage = () => {
                 id="email"
                 type="email"
                 value={profile.email}
+                readOnly
                 disabled
                 className="bg-muted"
               />

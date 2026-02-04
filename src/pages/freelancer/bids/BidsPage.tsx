@@ -98,37 +98,41 @@ export default function BidsPage() {
     if (!user) return;
 
     try {
-      const { data: myBidsData, error: myBidsError } = await supabase
+      const { data: bidsData, error: bidsError } = await supabase
         .from('bids')
-        .select(`
-          *,
-          user_projects (
-            title,
-            description,
-            user_id,
-            category,
-            subcategory,
-            budget,
-            bidding_deadline
-          )
-        `)
+        .select('*')
         .eq('freelancer_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (myBidsError) throw myBidsError;
-      
-      // Filter out bids with null projects and cast to Bid[]
-      const validBids = (myBidsData || []).filter(
-        (bid: unknown) => {
-          const b = bid as { user_projects?: unknown };
-          return b.user_projects && typeof b.user_projects === 'object' && !('error' in b.user_projects);
-        }
-      ) as unknown as Bid[];
-      
+      if (bidsError) throw bidsError;
+      const bids = bidsData || [];
+
+      if (bids.length === 0) {
+        setMyBids([]);
+        return;
+      }
+
+      const projectIds = [...new Set((bids as { project_id: string }[]).map((b) => b.project_id))];
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('user_projects')
+        .select('id, title, description, user_id, category, subcategory, budget, bidding_deadline')
+        .in('id', projectIds);
+
+      if (projectsError) throw projectsError;
+      const projects = (projectsData || []) as { id: string; title: string; description: string; user_id: string; category?: string; subcategory?: string; budget?: number; bidding_deadline?: string }[];
+      const projectMap: Record<string, Bid['user_projects']> = {};
+      projects.forEach((p) => {
+        projectMap[p.id] = { title: p.title, description: p.description, user_id: p.user_id, category: p.category, subcategory: p.subcategory, budget: p.budget, bidding_deadline: p.bidding_deadline };
+      });
+      const bidsWithProjects = (bids as Record<string, unknown>[]).map((b) => ({
+        ...b,
+        user_projects: projectMap[(b as { project_id: string }).project_id] ?? null,
+      }));
+      const validBids = bidsWithProjects.filter((b) => b.user_projects != null) as unknown as Bid[];
       setMyBids(validBids);
     } catch (error) {
       console.error('Error fetching bids:', error);
-      toast.error('Failed to load bids');
+      setMyBids([]);
     } finally {
       setLoading(false);
     }

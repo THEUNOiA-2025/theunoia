@@ -315,9 +315,15 @@ export const DashboardLayout = () => {
     return null;
   }
 
-  const displayName = profile ? `${profile.first_name} ${profile.last_name}` : 'User';
+  // Name above email in dropdown: profile first, then account creation (user_metadata), then email prefix
+  const meta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
+  const nameFromProfile = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
+  const nameFromMeta = [meta?.firstName, meta?.lastName].filter(Boolean).join(' ').trim();
+  const displayName = nameFromProfile || nameFromMeta || user.email?.split('@')[0] || 'User';
   const displayEmail = user.email || 'No email';
-  const isClient = profile?.user_type === 'non-student';
+  // Use account-creation userType when profile missing/wrong (e.g. after Supabase migration)
+  const metaType = (user.user_metadata as { userType?: string } | undefined)?.userType;
+  const isClient = profile?.user_type === 'non-student' || metaType === 'non-student';
 
   const freelancerLinks = [
     { label: 'Dashboard', to: '/dashboard' },
@@ -348,7 +354,7 @@ export const DashboardLayout = () => {
       <header
         className="sticky top-0 z-30 w-full border-b border-white/20 backdrop-blur-xl bg-white/80"
       >
-        <div className="mx-auto flex h-24 items-center px-4 sm:px-6">
+        <div className="mx-auto flex h-28 items-center px-4 sm:px-6">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center flex-shrink-0">
             <img
@@ -570,7 +576,7 @@ export const DashboardLayout = () => {
         className={cn(
           'w-full min-h-screen',
           location.pathname === '/messages' ? '' : location.pathname === '/leadership' ? 'p-0' : 'p-6 pt-4',
-          (location.pathname === '/profile' || location.pathname.startsWith('/profile/') || location.pathname === '/leadership') && 'bg-[#faf7f1]'
+          (location.pathname === '/profile' || location.pathname.startsWith('/profile/') || location.pathname === '/leadership' || (location.pathname === '/dashboard' && isClient)) && 'bg-[#faf7f1]'
         )}
       >
         <Outlet />

@@ -352,7 +352,7 @@ const DashboardPage = () => {
         console.log("Data:", data);
         console.log("Error:", error);
 
-        if (error) throw error;
+        if (error) console.warn('Profile fetch error (e.g. after DB migration):', error);
         setProfile(data?.[0] ?? null);
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -420,8 +420,8 @@ const DashboardPage = () => {
     fetchStats();
   }, [user]);
 
-  const firstName = profile?.first_name || 'User';
-  const userName = `${firstName}`;
+  const firstName = profile?.first_name ?? (user?.user_metadata?.firstName as string | undefined) ?? user?.email?.split('@')[0] ?? 'User';
+  const userName = `${firstName}`.trim() || 'User';
 
   // Calculate today's goal progress (mock data for now)
   const todayGoalProgress = 75;

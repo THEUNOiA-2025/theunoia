@@ -45,17 +45,17 @@ const IndependentProjectsPage = () => {
   const coverImageInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      (async () => {
-        const { data } = await supabase.from("user_profiles").select("first_name, last_name").eq("user_id", user.id).limit(1);
-        const row = data?.[0] as { first_name?: string; last_name?: string } | undefined;
-        setProfileName({
-          first: row?.first_name ?? "",
-          last: row?.last_name ?? "",
-        });
-      })();
-    }
-  }, [user?.id]);
+    if (!user) return;
+    const fromMeta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
+    (async () => {
+      const { data } = await supabase.from("user_profiles").select("first_name, last_name").eq("user_id", user.id).limit(1);
+      const row = data?.[0] as { first_name?: string; last_name?: string } | undefined;
+      setProfileName({
+        first: row?.first_name ?? fromMeta?.firstName ?? "",
+        last: row?.last_name ?? fromMeta?.lastName ?? "",
+      });
+    })();
+  }, [user?.id, user?.user_metadata]);
 
   const filteredProjects = MOCK_PORTFOLIO_ALL.filter(
     (p) =>

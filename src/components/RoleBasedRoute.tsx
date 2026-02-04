@@ -71,7 +71,10 @@ export const RoleBasedRoute = ({ pageType }: RoleBasedRouteProps) => {
 
   // Non-students are clients (they post projects and hire freelancers)
   // Students are freelancers (they work on projects)
-  const isClient = userProfile?.user_type === "non-student";
+  // Use account-creation userType from auth when profile missing/wrong (e.g. after Supabase migration)
+  const metaType = (user?.user_metadata as { userType?: string } | undefined)?.userType;
+  const isClient =
+    userProfile?.user_type === "non-student" || metaType === "non-student";
 
   // Map page type to components
   const getPageComponent = () => {

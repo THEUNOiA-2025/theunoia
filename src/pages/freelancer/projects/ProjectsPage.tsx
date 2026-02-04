@@ -263,7 +263,6 @@ const ProjectsPage = () => {
 
   const fetchBrowseProjects = async () => {
     try {
-      // Fetch all open work requirements (public, no auth required), excluding community tasks
       const { data: allData, error: allError } = await supabase
         .from("user_projects")
         .select("*")
@@ -272,11 +271,28 @@ const ProjectsPage = () => {
         .eq("is_community_task", false)
         .order("created_at", { ascending: false });
 
-      if (allError) throw allError;
-      setAllProjects((allData as unknown as Project[]) || []);
+      if (!allError) {
+        setAllProjects((allData as unknown as Project[]) || []);
+        return;
+      }
+      const errMsg = String((allError as { message?: string }).message ?? allError);
+      const code = (allError as { code?: string }).code;
+      if (code === "42703" || errMsg.includes("is_community_task")) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("user_projects")
+          .select("*")
+          .eq("project_type", "work_requirement")
+          .eq("status", "open")
+          .order("created_at", { ascending: false });
+        if (!fallbackError) {
+          setAllProjects((fallbackData as unknown as Project[]) || []);
+          return;
+        }
+      }
+      throw allError;
     } catch (error) {
       console.error("Error fetching browse projects:", error);
-      toast.error("Failed to load projects");
+      setAllProjects([]);
     }
   };
 
@@ -300,105 +316,84 @@ const ProjectsPage = () => {
     if (!user?.id) return;
     
     try {
-      // Fetch user skills
       await fetchUserSkills();
 
-      // Fetch projects where freelancer has accepted bid and status is 'in_progress' (In Progress projects)
-      const { data: inProgressData, error: inProgressError } = await supabase
+      const { data: bidsData, error: bidsError } = await supabase
         .from("bids")
-        .select(`
-          amount,
-          status,
-          user_projects (*)
-        `)
-        .eq("freelancer_id", user.id)
-        .eq("status", "accepted")
-        .order("created_at", { ascending: false });
-
-      if (inProgressError) throw inProgressError;
-      
-      const inProgressProjects = (inProgressData || [])
-        .filter((bid) => {
-          if (!bid.user_projects) return false;
-          const project = bid.user_projects as unknown as Project;
-          return project.status === 'in_progress';
-        })
-        .map((bid) => ({
-          ...(bid.user_projects as unknown as Project),
-          bidStatus: bid.status,
-          bidAmount: bid.amount,
-        })) as BidProject[];
-      setMyProjects(inProgressProjects as unknown as Project[]);
-
-      // Fetch projects where user has placed bids (for display purposes)
-      const { data: bidData, error: bidError } = await supabase
-        .from("bids")
-        .select(`
-          amount,
-          status,
-          user_projects (*)
-        `)
+        .select("project_id, amount, status")
         .eq("freelancer_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (bidError) throw bidError;
-      
-      const bidProjectsData = (bidData || [])
-        .filter((bid) => bid.user_projects !== null)
-        .map((bid) => ({
-          ...(bid.user_projects as unknown as Project),
-          bidStatus: bid.status,
-          bidAmount: bid.amount,
-        })) as BidProject[];
-      setBidProjects(bidProjectsData);
+      if (bidsError) throw bidsError;
+      const bids = bidsData || [];
 
-      // Fetch projects where freelancer has accepted bid and status is 'completed' (Completed projects)
-      if (isVerifiedStudent) {
-        const { data: completedBidData, error: completedBidError } = await supabase
-          .from("bids")
-          .select(`
-            amount,
-            status,
-            user_projects (*)
-          `)
-          .eq("freelancer_id", user.id)
-          .eq("status", "accepted")
-          .order("created_at", { ascending: false });
-
-        if (completedBidError) throw completedBidError;
-        
-        const completedProjectsFromBids = (completedBidData || [])
-          .filter((bid) => {
-            if (!bid.user_projects) return false;
-            const project = bid.user_projects as unknown as Project;
-            return project.status === 'completed';
-          })
-          .map((bid) => ({
-            ...(bid.user_projects as unknown as Project),
-            bidStatus: bid.status,
-            bidAmount: bid.amount,
-          })) as BidProject[];
-
-        // Also fetch user's portfolio projects (manually added)
-        const { data: portfolioData, error: portfolioError } = await supabase
+      if (bids.length > 0) {
+        const projectIds = [...new Set((bids as { project_id: string }[]).map((b) => b.project_id))];
+        const { data: projectsData, error: projectsError } = await supabase
           .from("user_projects")
           .select("*")
-          .eq("user_id", user.id)
-          .eq("project_type", "portfolio_project")
-          .order("completed_at", { ascending: false });
+          .in("id", projectIds);
 
-        if (portfolioError) throw portfolioError;
-        
-        // Combine completed projects from bids and portfolio projects
-        const allCompletedProjects = [
-          ...completedProjectsFromBids,
-          ...((portfolioData as unknown as Project[]) || [])
-        ];
-        setCompletedProjects(allCompletedProjects);
+        if (projectsError) throw projectsError;
+        const projects = (projectsData || []) as Project[];
+        const projectMap: Record<string, Project> = {};
+        projects.forEach((p) => { projectMap[p.id] = p; });
+
+        const bidsWithProjects = (bids as { project_id: string; amount: number; status: string }[]).map((b) => ({
+          bid: b,
+          project: projectMap[b.project_id],
+        })).filter((x) => x.project != null);
+
+        const inProgressProjects = bidsWithProjects
+          .filter((x) => x.bid.status === "accepted" && x.project.status === "in_progress")
+          .map((x) => ({ ...x.project, bidStatus: x.bid.status, bidAmount: x.bid.amount })) as BidProject[];
+        setMyProjects(inProgressProjects as unknown as Project[]);
+
+        const bidProjectsData = bidsWithProjects.map((x) => ({
+          ...x.project,
+          bidStatus: x.bid.status,
+          bidAmount: x.bid.amount,
+        })) as BidProject[];
+        setBidProjects(bidProjectsData);
+
+        if (isVerifiedStudent) {
+          const completedProjectsFromBids = bidsWithProjects
+            .filter((x) => x.bid.status === "accepted" && x.project.status === "completed")
+            .map((x) => ({ ...x.project, bidStatus: x.bid.status, bidAmount: x.bid.amount })) as BidProject[];
+
+          const { data: portfolioData, error: portfolioError } = await supabase
+            .from("user_projects")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("project_type", "portfolio_project")
+            .order("completed_at", { ascending: false });
+
+          if (portfolioError) throw portfolioError;
+          const allCompletedProjects = [
+            ...completedProjectsFromBids,
+            ...((portfolioData as unknown as Project[]) || []),
+          ];
+          setCompletedProjects(allCompletedProjects);
+        }
+      } else {
+        setMyProjects([]);
+        setBidProjects([]);
+        if (isVerifiedStudent) {
+          const { data: portfolioData, error: portfolioError } = await supabase
+            .from("user_projects")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("project_type", "portfolio_project")
+            .order("completed_at", { ascending: false });
+          if (portfolioError) throw portfolioError;
+          setCompletedProjects((portfolioData as unknown as Project[]) || []);
+        }
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      toast.error("Failed to load your projects");
+      setMyProjects([]);
+      setBidProjects([]);
+      setCompletedProjects([]);
     } finally {
       setLoading(false);
     }
@@ -712,44 +707,50 @@ const ProjectsPage = () => {
     }
   };
 
+  // Search-only filter: for "All Projects" section (everyone sees all projects, optional search)
+  const matchesSearch = (project: Project) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      project.title.toLowerCase().includes(q) ||
+      project.description.toLowerCase().includes(q) ||
+      project.skills_required?.some((s) => s.toLowerCase().includes(q)) ||
+      project.category?.toLowerCase().includes(q) ||
+      project.subcategory?.toLowerCase().includes(q)
+    );
+  };
+
+  // Skill-based filter: project's skills overlap user's skills (for "Recommended for You")
+  const matchesUserSkills = (project: Project) => {
+    if (userSkills.length === 0) return false;
+    const projectSkills = (project.skills_required || []).map((s) => s.toLowerCase().trim());
+    return projectSkills.some((skill) =>
+      userSkills.some(
+        (userSkill) =>
+          skill.includes(userSkill) || userSkill.includes(skill) || skill === userSkill
+      )
+    );
+  };
+
+  // All Projects section: show every project (filtered only by search). All clients/freelancers see all projects here.
+  const allProjectsFilteredBySearch = allProjects.filter(matchesSearch);
+
+  // Recommended for You: based on user skills/criteria only (frontend logic). Show first 4 for carousel.
+  const recommendedProjects = allProjects.filter(matchesUserSkills).slice(0, 4);
+
+  // Legacy filtered list (search + category + sort) kept for any other use; Browse tab uses allProjectsFilteredBySearch and recommendedProjects
   const filteredProjects = allProjects.filter((project) => {
-    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.skills_required?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      project.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.subcategory?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const searchOk = matchesSearch(project);
     const matchesCategory = selectedCategory === "all" || project.category === selectedCategory;
     const matchesSubcategory = selectedSubcategory === "all" || project.subcategory === selectedSubcategory;
-    
-    // Apply sorting filter
     const now = new Date();
     const projectDate = new Date(project.created_at);
     const daysDiff = Math.floor((now.getTime() - projectDate.getTime()) / (1000 * 60 * 60 * 24));
-    
     let matchesSort = true;
-    if (sortType === 'newest') {
-      // Projects from last 7 days (0-7 days old)
-      matchesSort = daysDiff >= 0 && daysDiff <= 7;
-    } else if (sortType === 'oldest') {
-      // Projects older than 14 days
-      matchesSort = daysDiff > 14;
-    } else if (sortType === 'relevant') {
-      // Projects where skills_required matches user's skills (all ages)
-      if (userSkills.length === 0) {
-        matchesSort = false; // No skills = no relevant projects
-      } else {
-        const projectSkills = (project.skills_required || []).map(skill => skill.toLowerCase().trim());
-        matchesSort = projectSkills.some(skill => 
-          userSkills.some(userSkill => 
-            skill.includes(userSkill) || userSkill.includes(skill) || 
-            skill === userSkill
-          )
-        );
-      }
-    }
-    
-    return matchesSearch && matchesCategory && matchesSubcategory && matchesSort;
+    if (sortType === "newest") matchesSort = daysDiff >= 0 && daysDiff <= 7;
+    else if (sortType === "oldest") matchesSort = daysDiff > 14;
+    else if (sortType === "relevant") matchesSort = matchesUserSkills(project);
+    return searchOk && matchesCategory && matchesSubcategory && matchesSort;
   });
 
   const renderProjectCard = (project: Project | BidProject, showActions: boolean = false, isFeatured: boolean = false) => {
@@ -932,10 +933,6 @@ const ProjectsPage = () => {
     );
   }
 
-  // Split projects for recommended section (just take first 4 for now as mock recommendation)
-  const recommendedProjects = filteredProjects.slice(0, 4);
-  const remainingProjects = filteredProjects; // Show all in grid too, or filteredProjects.slice(4)
-
   return (
     <main className="min-h-screen bg-[#FFFFFF] dark:bg-dark-bg text-[#121118] dark:text-white font-sans">
         <div className="max-w-6xl mx-auto px-4 lg:px-11 py-7">
@@ -983,29 +980,27 @@ const ProjectsPage = () => {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-7">
             <TabsList className="bg-[#FDF8F3] dark:bg-white/5 p-1.5 gap-1.5 h-auto mb-7 justify-start border border-[#f1f0f5] dark:border-white/10 w-fit rounded-xl shadow-sm">
-               {(!user || isStudentUser) && (
-                 <TabsTrigger 
-                   value="browse" 
-                   className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
-                 >
-                   Browse Project
-                 </TabsTrigger>
-               )}
+               <TabsTrigger 
+                 value="browse" 
+                 className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
+               >
+                 Browse Project
+               </TabsTrigger>
                {user && (
-                 <TabsTrigger 
-                   value="my-projects"
-                   className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
-                 >
-                   In Progress
-                 </TabsTrigger>
-               )}
-               {isVerifiedStudent && (
-                 <TabsTrigger 
-                   value="completed"
-                   className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
-                 >
-                   Completed Project
-                 </TabsTrigger>
+                 <>
+                   <TabsTrigger 
+                     value="my-projects"
+                     className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
+                   >
+                     In Progress
+                   </TabsTrigger>
+                   <TabsTrigger 
+                     value="completed"
+                     className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
+                   >
+                     Completed Project
+                   </TabsTrigger>
+                 </>
                )}
             </TabsList>
 
@@ -1068,20 +1063,22 @@ const ProjectsPage = () => {
                      {recommendedProjects.length > 0 ? (
                         recommendedProjects.map(project => renderRecommendedCard(project))
                      ) : (
-                        <div className="w-full py-8 text-center text-[#68608a]">No recommendations available</div>
+                        <div className="w-full py-8 text-center text-[#68608a]">No projects found matching your skills or criteria.</div>
                      )}
                   </div>
                </section>
 
-               {/* All Projects Section */}
+               {/* All Projects Section - every project (clients/freelancers see all); filtered only by search */}
                <section>
                  <h2 className="text-xl font-extrabold tracking-tight text-[#121118] dark:text-white mb-7">All Projects</h2>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
-                    {remainingProjects.length > 0 ? (
-                       remainingProjects.map(project => renderProjectCard(project, false, true))
+                    {allProjectsFilteredBySearch.length > 0 ? (
+                       allProjectsFilteredBySearch.map(project => renderProjectCard(project, false, true))
                     ) : (
                        <div className="col-span-full py-10 text-center bg-white rounded-2xl border border-[#f1f0f5]">
-                          <p className="text-base text-[#68608a] font-medium">No projects found matching your criteria.</p>
+                          <p className="text-base text-[#68608a] font-medium">
+                            {searchQuery.trim() ? "No projects match your search." : "No projects available yet."}
+                          </p>
                        </div>
                     )}
                  </div>
@@ -1116,11 +1113,8 @@ const ProjectsPage = () => {
                )}
             </TabsContent>
 
-            {/* PORTFOLIO PROJECT TAB */}
+            {/* COMPLETED PROJECT TAB */}
             <TabsContent value="completed" className="mt-0">
-                <div className="flex justify-between items-center mb-7">
-                   <h2 className="text-xl font-bold">Portfolio Project</h2>
-                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
                    {completedProjects.length > 0 ? (
                       completedProjects.map(project => {

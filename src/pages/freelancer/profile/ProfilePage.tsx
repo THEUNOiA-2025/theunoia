@@ -13,8 +13,6 @@ import {
   Plus,
   Edit,
   Shield,
-  Award,
-  QrCode,
   Upload,
   GraduationCap,
   ArrowRight,
@@ -178,6 +176,16 @@ const ProfilePage = () => {
     endDate: "",
     description: "",
   });
+  /** Education entries added via modal (frontend list; backend can persist later). */
+  const [educationList, setEducationList] = useState<Array<{
+    id: string;
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }>>([]);
   const [portfolioModalOpen, setPortfolioModalOpen] = useState(false);
   const [portfolioForm, setPortfolioForm] = useState({
     title: "",
@@ -214,9 +222,17 @@ const ProfilePage = () => {
       console.log("Data:", data);
       console.log("Error:", error);
 
-      if (error) throw error;
+      if (error) console.warn("Profile fetch error (e.g. after DB migration):", error);
       const row = (data?.[0] ?? null) as Record<string, unknown> | null;
-      if (!row) return;
+      const fromMeta = user?.user_metadata as { firstName?: string; lastName?: string } | undefined;
+      if (!row) {
+        setProfile((prev) => ({
+          ...prev,
+          firstName: fromMeta?.firstName ?? prev.firstName ?? "",
+          lastName: fromMeta?.lastName ?? prev.lastName ?? "",
+        }));
+        return;
+      }
       setProfile({
         firstName: (row.first_name as string) || "",
         lastName: (row.last_name as string) || "",
@@ -593,6 +609,16 @@ const ProfilePage = () => {
               className="p-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
+                const entry = {
+                  id: `edu-${Date.now()}`,
+                  institution: educationForm.institution.trim(),
+                  degree: educationForm.degree.trim(),
+                  field: educationForm.field.trim(),
+                  startDate: educationForm.startDate,
+                  endDate: educationForm.endDate,
+                  description: educationForm.description.trim(),
+                };
+                setEducationList((prev) => [...prev, entry]);
                 toast.success("Education history added");
                 setEducationModalOpen(false);
                 setEducationForm({ institution: "", degree: "", field: "", startDate: "", endDate: "", description: "" });
@@ -1075,47 +1101,10 @@ const ProfilePage = () => {
                   View All <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
-              <div className="space-y-2">
-                <div className="bg-white p-3 rounded-xl border-l-4 border-primary shadow-sm">
-                  <div className="flex justify-between items-start mb-1.5">
-                    <div className="size-7 bg-primary/10 rounded flex items-center justify-center text-primary">
-                      <Award className="h-3.5 w-3.5" />
-                    </div>
-                    <QrCode className="h-3.5 w-3.5 text-gray-400 cursor-pointer" />
-                  </div>
-                  <h5 className="text-sm font-bold mb-0.5" style={{ color: TEXT_PRIMARY }}>
-                    Advanced UI Systems
-                  </h5>
-                  <p className="text-[10px] mb-1.5" style={{ color: TEXT_MUTED }}>
-                    Issued by THEUNOiA • Dec 2023
-                  </p>
-                  <code className="text-[9px] bg-[#f1f0f5] px-1.5 py-0.5 rounded text-primary font-mono">
-                    UID-294-XZQ-990
-                  </code>
-                </div>
-                <div
-                  className="bg-white p-3 rounded-xl border-l-4 shadow-sm"
-                  style={{ borderLeftColor: "hsl(var(--accent))" }}
-                >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <div
-                      className="size-7 rounded flex items-center justify-center"
-                      style={{ backgroundColor: "hsl(var(--accent) / 0.3)", color: "#2d4a22" }}
-                    >
-                      <Award className="h-3.5 w-3.5" />
-                    </div>
-                    <QrCode className="h-3.5 w-3.5 text-gray-400 cursor-pointer" />
-                  </div>
-                  <h5 className="text-sm font-bold mb-0.5" style={{ color: TEXT_PRIMARY }}>
-                    Strategic Product Logic
-                  </h5>
-                  <p className="text-[10px] mb-1.5" style={{ color: TEXT_MUTED }}>
-                    Issued by THEUNOiA • Nov 2023
-                  </p>
-                  <code className="text-[9px] bg-[#f1f0f5] px-1.5 py-0.5 rounded text-primary font-mono">
-                    UID-118-YBB-402
-                  </code>
-                </div>
+              <div className="bg-white p-4 rounded-xl border border-[#f1f0f5] shadow-sm">
+                <p className="text-sm text-center" style={{ color: TEXT_MUTED }}>
+                  Class Feature will come soon
+                </p>
               </div>
             </div>
           </aside>
@@ -1284,18 +1273,57 @@ const ProfilePage = () => {
               Education History
             </h3>
             <div className="relative pl-6 space-y-6 before:absolute before:left-[9px] before:top-1 before:bottom-1 before:w-[2px] before:bg-gray-200">
-              <div className="relative">
-                <div className="absolute -left-5 top-1 size-3 rounded-full bg-primary border-2 border-white z-10" />
-                <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
-                  {verification?.institute_name || "Education"}
-                </h5>
-                <p className="text-xs text-primary font-medium mb-1">
-                  {verification?.institute_name ? "Student • THEUNOiA" : "Add in Edit Profile"}
-                </p>
-                <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
-                  Focus on your degree and certifications.
-                </p>
-              </div>
+              {educationList.length === 0 && !verification?.institute_name && (
+                <div className="relative">
+                  <div className="absolute -left-5 top-1 size-3 rounded-full bg-gray-300 border-2 border-white z-10" />
+                  <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
+                    Education
+                  </h5>
+                  <p className="text-xs text-primary font-medium mb-1">Add in Edit Profile</p>
+                  <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
+                    Focus on your degree and certifications. Use the Education button above to add entries.
+                  </p>
+                </div>
+              )}
+              {verification?.institute_name && (
+                <div className="relative">
+                  <div className="absolute -left-5 top-1 size-3 rounded-full bg-primary border-2 border-white z-10" />
+                  <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
+                    {verification.institute_name}
+                  </h5>
+                  <p className="text-xs text-primary font-medium mb-1">Student • THEUNOiA</p>
+                  <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
+                    Focus on your degree and certifications.
+                  </p>
+                </div>
+              )}
+              {[...educationList]
+                .sort((a, b) => {
+                  // Timeline ascending: oldest first (small date → first). No date = end of list.
+                  const aStart = a.startDate || "9999-12";
+                  const bStart = b.startDate || "9999-12";
+                  if (aStart !== bStart) return aStart.localeCompare(bStart);
+                  const aEnd = a.endDate || "9999-12";
+                  const bEnd = b.endDate || "9999-12";
+                  return aEnd.localeCompare(bEnd);
+                })
+                .map((edu) => (
+                <div key={edu.id} className="relative">
+                  <div className="absolute -left-5 top-1 size-3 rounded-full bg-primary border-2 border-white z-10" />
+                  <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
+                    {edu.institution || "Institution"}
+                  </h5>
+                  <p className="text-xs text-primary font-medium mb-1">
+                    {[edu.degree, edu.field].filter(Boolean).join(" • ") || "—"}
+                    {edu.startDate || edu.endDate ? ` • ${edu.startDate || "—"} – ${edu.endDate || "Present"}` : ""}
+                  </p>
+                  {edu.description ? (
+                    <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
+                      {edu.description}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
               <div className="relative">
                 <div className="absolute -left-5 top-1 size-3 rounded-full bg-gray-300 border-2 border-white z-10" />
                 <h5 className="text-sm font-bold" style={{ color: TEXT_PRIMARY }}>
