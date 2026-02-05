@@ -37,6 +37,7 @@ export function calculateFreelancerPayout(params: PayoutCalculationParams): Payo
   const {
     contractValue,
     freelancerGSTRegistered,
+    clientIsTDSDeductor = true, // Default to true for backward compatibility
     forceTDSApplicable,
     cumulativeAmount = 0,
   } = params;
@@ -61,10 +62,12 @@ export function calculateFreelancerPayout(params: PayoutCalculationParams): Payo
   const tcs = roundToTwo(contractValue * (TAX_RATES.TCS / 100));
 
   // 6. Determine TDS applicability
+  // IMPORTANT: If client is NOT a TDS deductor, TDS never applies
   const { tdsApplicable, tdsReason } = checkTDSApplicability(
     contractValue,
     cumulativeAmount,
-    forceTDSApplicable
+    forceTDSApplicable,
+    clientIsTDSDeductor
   );
 
   // 7. Calculate TDS (10% of contract value) if applicable
@@ -117,6 +120,7 @@ export function calculateClientPayable(params: PayableCalculationParams): Payabl
   const {
     contractValue,
     freelancerGSTRegistered,
+    clientIsTDSDeductor = true, // Default to true for backward compatibility
     forceTDSApplicable,
   } = params;
 
@@ -140,10 +144,12 @@ export function calculateClientPayable(params: PayableCalculationParams): Payabl
   const platformFeeGST = roundToTwo(platformFee * (TAX_RATES.GST / 100));
 
   // 6. Determine TDS applicability
+  // IMPORTANT: If client is NOT a TDS deductor, TDS never applies
   const { tdsApplicable } = checkTDSApplicability(
     contractValue,
     0, // Client doesn't need cumulative for their payable view
-    forceTDSApplicable
+    forceTDSApplicable,
+    clientIsTDSDeductor
   );
 
   // 7. Calculate TDS held (10% of contract value) if applicable
@@ -184,6 +190,7 @@ export function calculateMilestoneBreakdown(params: MilestoneCalculationParams):
     contractValue,
     phases,
     freelancerGSTRegistered,
+    clientIsTDSDeductor = true, // Default to true for backward compatibility
     cumulativeAmountPaid = 0,
   } = params;
 
@@ -206,10 +213,12 @@ export function calculateMilestoneBreakdown(params: MilestoneCalculationParams):
       : amountPerPhase;
 
     // Check TDS applicability for this milestone
+    // IMPORTANT: If client is NOT a TDS deductor, TDS never applies
     const { tdsApplicable } = checkTDSApplicability(
       phaseAmount,
       cumulativeAmount,
-      undefined
+      undefined,
+      clientIsTDSDeductor
     );
 
     // Calculate TDS for this milestone
@@ -270,20 +279,32 @@ export function calculateMilestoneBreakdown(params: MilestoneCalculationParams):
 
 /**
  * Check if TDS is applicable based on threshold rules
- * TDS applies if:
- * - Single payment > ₹30,000 OR
- * - Cumulative payments in FY > ₹30,000
+ * TDS applies ONLY if:
+ * 1. Client is a TDS deductor (has TDS) AND
+ * 2. Either:
+ *    - Single payment > ₹30,000 OR
+ *    - Cumulative payments in FY > ₹30,000
  * 
  * @param currentAmount - Current payment amount
  * @param cumulativeAmount - Previous cumulative amount (same client-freelancer pair in FY)
  * @param forceApplicable - Override for testing
+ * @param clientIsTDSDeductor - Whether the client is a TDS deductor
  * @returns TDS applicability and reason
  */
 export function checkTDSApplicability(
   currentAmount: number,
   cumulativeAmount: number = 0,
-  forceApplicable?: boolean
+  forceApplicable?: boolean,
+  clientIsTDSDeductor: boolean = true
 ): { tdsApplicable: boolean; tdsReason: TDSReason } {
+  // FIRST CHECK: If client is NOT a TDS deductor, TDS NEVER applies
+  if (!clientIsTDSDeductor) {
+    return {
+      tdsApplicable: false,
+      tdsReason: 'client_not_tds_deductor',
+    };
+  }
+
   // If force override is provided, use it
   if (forceApplicable !== undefined) {
     return {

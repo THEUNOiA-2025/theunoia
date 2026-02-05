@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Plus, X, Info, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { validatePAN, validateGSTIN, formatPAN, formatGSTIN, extractPANFromGSTIN, getStateFromGSTIN, getPANHolderType } from "@/lib/financial/validators";
 
 const SKILLS_STORAGE_KEY = (userId: string) => `profile_role_skills_${userId}`;
 
@@ -33,18 +35,36 @@ const EditProfilePage = () => {
   const [role, setRole] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
+  
+  // Financial fields
+  const [panNumber, setPanNumber] = useState("");
+  const [isGSTRegistered, setIsGSTRegistered] = useState(false);
+  const [gstinNumber, setGstinNumber] = useState("");
+  const [panError, setPanError] = useState<string | null>(null);
+  const [gstinError, setGstinError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
     // First name, last name, email from account creation (auth) — show immediately
-    const meta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
+    const meta = user.user_metadata as { 
+      firstName?: string; 
+      lastName?: string;
+      panNumber?: string;
+      isGSTRegistered?: boolean;
+      gstinNumber?: string;
+    } | undefined;
     setProfile((prev) => ({
       ...prev,
       firstName: meta?.firstName ?? prev.firstName,
       lastName: meta?.lastName ?? prev.lastName,
       email: user.email ?? prev.email,
     }));
+
+    // Load financial data from user_metadata
+    if (meta?.panNumber) setPanNumber(meta.panNumber);
+    if (meta?.isGSTRegistered !== undefined) setIsGSTRegistered(meta.isGSTRegistered);
+    if (meta?.gstinNumber) setGstinNumber(meta.gstinNumber);
 
     fetchProfile();
     try {
@@ -63,7 +83,13 @@ const EditProfilePage = () => {
     if (!user?.id) return;
 
     // First name, last name, email come from account creation (auth), read-only
-    const meta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
+    const meta = user.user_metadata as { 
+      firstName?: string; 
+      lastName?: string;
+      panNumber?: string;
+      isGSTRegistered?: boolean;
+      gstinNumber?: string;
+    } | undefined;
     const fromAuth = {
       firstName: meta?.firstName ?? "",
       lastName: meta?.lastName ?? "",
@@ -79,7 +105,20 @@ const EditProfilePage = () => {
 
       if (error) throw error;
 
-      const row = data;
+      const row = data as {
+        gender?: string;
+        date_of_birth?: string;
+        city?: string;
+        pin_code?: string;
+        bio?: string;
+        phone?: string;
+        website?: string;
+        billing_address?: string;
+        pan_number?: string;
+        is_gst_registered?: boolean;
+        gstin_number?: string;
+      };
+      
       setProfile({
         ...fromAuth,
         gender: row?.gender || "",
@@ -91,6 +130,11 @@ const EditProfilePage = () => {
         website: row?.website || "",
         billingAddress: row?.billing_address || "",
       });
+
+      // Load financial data from database if available
+      if (row?.pan_number) setPanNumber(row.pan_number);
+      if (row?.is_gst_registered !== undefined) setIsGSTRegistered(row.is_gst_registered);
+      if (row?.gstin_number) setGstinNumber(row.gstin_number);
     } catch (error) {
       console.error("Error fetching profile:", error);
       // Still show name/email from auth even if user_profiles fails
@@ -103,6 +147,41 @@ const EditProfilePage = () => {
     if (!user?.id) {
       toast.error("User not authenticated");
       return;
+    }
+
+    // Reset errors
+    setPanError(null);
+    setGstinError(null);
+
+    // Validate PAN (mandatory)
+    if (panNumber.trim()) {
+      const panValidation = validatePAN(panNumber);
+      if (!panValidation.valid) {
+        setPanError(panValidation.error || 'Invalid PAN');
+        return;
+      }
+    } else {
+      setPanError('PAN number is required');
+      return;
+    }
+
+    // Validate GSTIN if GST registered
+    if (isGSTRegistered) {
+      if (!gstinNumber.trim()) {
+        setGstinError('GSTIN is required for GST registered users');
+        return;
+      }
+      const gstinValidation = validateGSTIN(gstinNumber);
+      if (!gstinValidation.valid) {
+        setGstinError(gstinValidation.error || 'Invalid GSTIN');
+        return;
+      }
+      // Cross-validate PAN matches GSTIN
+      const embeddedPAN = extractPANFromGSTIN(gstinNumber);
+      if (embeddedPAN && embeddedPAN !== formatPAN(panNumber)) {
+        setGstinError('PAN in GSTIN does not match your PAN number');
+        return;
+      }
     }
 
     setLoading(true);
@@ -118,10 +197,27 @@ const EditProfilePage = () => {
           phone: profile.phone,
           website: profile.website,
           billing_address: profile.billingAddress,
+          // Financial fields - will be added to the table by backend
+          // pan_number: formatPAN(panNumber),
+          // is_gst_registered: isGSTRegistered,
+          // gstin_number: isGSTRegistered ? formatGSTIN(gstinNumber) : null,
         })
         .eq("user_id", user.id);
 
       if (error) throw error;
+
+      // Also update auth metadata for immediate access
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          panNumber: formatPAN(panNumber),
+          isGSTRegistered: isGSTRegistered,
+          gstinNumber: isGSTRegistered ? formatGSTIN(gstinNumber) : null,
+        }
+      });
+
+      if (updateError) {
+        console.error("Error updating auth metadata:", updateError);
+      }
 
       localStorage.setItem(
         SKILLS_STORAGE_KEY(user.id),
@@ -443,6 +539,120 @@ const EditProfilePage = () => {
                 placeholder="Enter your billing address"
                 rows={3}
               />
+            </div>
+
+            {/* Financial Details Section */}
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="font-semibold text-base">Financial Details</h3>
+                <div className="group relative">
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-64 z-50 border">
+                    PAN is mandatory for tax compliance (TDS deductions). GSTIN is required if you are GST registered.
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="panNumber">
+                  PAN Number <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="panNumber"
+                    type="text"
+                    placeholder="XXXXX0000X"
+                    value={panNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase().slice(0, 10);
+                      setPanNumber(value);
+                      if (panError) setPanError(null);
+                    }}
+                    className={`uppercase ${panError ? 'border-destructive' : ''}`}
+                    maxLength={10}
+                  />
+                </div>
+                {panError && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {panError}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Format: 5 letters + 4 digits + 1 letter (e.g., ABCDE1234F)
+                </p>
+                {panNumber && panNumber.length === 10 && validatePAN(panNumber).valid && (
+                  <p className="text-xs text-primary">
+                    Holder Type: {getPANHolderType(panNumber)}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
+                <div className="space-y-0.5">
+                  <Label htmlFor="gstRegistered" className="cursor-pointer">
+                    Are you GST Registered?
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enable if you have a GSTIN for your business
+                  </p>
+                </div>
+                <Switch
+                  id="gstRegistered"
+                  checked={isGSTRegistered}
+                  onCheckedChange={(checked) => {
+                    setIsGSTRegistered(checked);
+                    if (!checked) {
+                      setGstinNumber('');
+                      setGstinError(null);
+                    }
+                  }}
+                />
+              </div>
+
+              {isGSTRegistered && (
+                <div className="space-y-2">
+                  <Label htmlFor="gstinNumber">
+                    GSTIN <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="gstinNumber"
+                    type="text"
+                    placeholder="22AAAAA0000A1Z5"
+                    value={gstinNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase().slice(0, 15);
+                      setGstinNumber(value);
+                      if (gstinError) setGstinError(null);
+                    }}
+                    className={`uppercase ${gstinError ? 'border-destructive' : ''}`}
+                    maxLength={15}
+                  />
+                  {gstinError && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {gstinError}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    15-character GST Identification Number
+                  </p>
+                  {gstinNumber && gstinNumber.length === 15 && validateGSTIN(gstinNumber).valid && (
+                    <p className="text-xs text-primary">
+                      State: {getStateFromGSTIN(gstinNumber)}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="p-3 bg-secondary/20 rounded-lg text-xs text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Why is this required?</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>PAN is mandatory for TDS compliance on payments exceeding ₹30,000</li>
+                  <li>GST registration enables proper tax invoicing on platform services</li>
+                  <li>These details appear on invoices and payment receipts</li>
+                </ul>
+              </div>
             </div>
 
             <Button

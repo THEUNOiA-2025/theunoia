@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/select";
 import { FileText, FolderTree, Calendar, Upload, X, Search } from "lucide-react";
 import { getCategoryList, getSubcategoriesForCategory } from "@/data/categories";
+import { FinancialProfileRequiredDialog } from "@/components/financial";
+import { useFinancialProfile } from "@/hooks/useFinancialProfile";
+import { toast } from "sonner";
 
 const PostProjectPage = () => {
   const navigate = useNavigate();
@@ -26,6 +29,10 @@ const PostProjectPage = () => {
   const [skills, setSkills] = useState<string[]>([]);
   const [biddingDeadline, setBiddingDeadline] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [financialDialogOpen, setFinancialDialogOpen] = useState(false);
+  
+  // Financial profile check
+  const { isComplete: hasFinancialProfile, isLoading: financialLoading } = useFinancialProfile();
 
   const categories = getCategoryList();
   const subcategories = primaryCategory
@@ -56,11 +63,40 @@ const PostProjectPage = () => {
   };
 
   const handlePublish = () => {
+    // TEMPORARILY DISABLED FOR TESTING - Re-enable when ready
+    // Check financial profile first
+    // if (!hasFinancialProfile && !financialLoading) {
+    //   setFinancialDialogOpen(true);
+    //   return;
+    // }
+    
+    // Validate required fields
+    if (!title.trim()) {
+      toast.error("Please enter a project title");
+      return;
+    }
+    if (!description.trim()) {
+      toast.error("Please enter a project description");
+      return;
+    }
+    if (!primaryCategory) {
+      toast.error("Please select a category");
+      return;
+    }
+    
+    // Navigate to projects page (actual posting logic will be added with backend)
     navigate("/projects");
   };
 
   return (
     <div className="min-h-screen bg-[#f6f5f8] dark:bg-background flex flex-col">
+      {/* Financial Profile Required Dialog */}
+      <FinancialProfileRequiredDialog
+        open={financialDialogOpen}
+        onOpenChange={setFinancialDialogOpen}
+        action="post_project"
+      />
+      
       <main className="flex-1 flex justify-center py-6 px-4">
         <div className="flex flex-col max-w-[700px] w-full gap-5">
           <div className="flex flex-col gap-1 px-1">

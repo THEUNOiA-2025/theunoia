@@ -14,6 +14,12 @@ export interface UserFinancialProfile {
   isGSTRegistered: boolean;
   /** Billing address for invoices */
   billingAddress: string | null;
+  /** 
+   * Whether the user is a TDS deductor (CLIENT ONLY)
+   * If true, TDS will be deducted from freelancer payments
+   * If false, no TDS will be applied regardless of threshold
+   */
+  isTDSDeductor?: boolean;
 }
 
 // ============================================
@@ -56,7 +62,8 @@ export type TDSReason =
   | 'single_payment_exceeds_threshold'
   | 'cumulative_exceeds_threshold'
   | 'below_threshold'
-  | 'not_applicable';
+  | 'not_applicable'
+  | 'client_not_tds_deductor';
 
 // ============================================
 // PAYABLE BREAKDOWN (Client Side)
@@ -157,6 +164,9 @@ export interface Contract {
   
   /** Is client GST registered */
   clientGSTRegistered: boolean;
+  
+  /** Is client a TDS deductor - determines if TDS applies */
+  clientIsTDSDeductor: boolean;
   
   /** Milestone breakdown */
   milestones: MilestonePayment[];
@@ -419,6 +429,12 @@ export interface PayoutCalculationParams {
   contractValue: number;
   freelancerGSTRegistered: boolean;
   
+  /** 
+   * Is the client a TDS deductor?
+   * If false, TDS will NOT be calculated regardless of threshold
+   */
+  clientIsTDSDeductor?: boolean;
+  
   /** For TDS threshold check */
   clientId?: string;
   freelancerId?: string;
@@ -434,6 +450,12 @@ export interface PayableCalculationParams {
   contractValue: number;
   freelancerGSTRegistered: boolean;
   
+  /** 
+   * Is the client a TDS deductor?
+   * If false, TDS will NOT be calculated regardless of threshold
+   */
+  clientIsTDSDeductor?: boolean;
+  
   /** For TDS threshold check */
   clientId?: string;
   freelancerId?: string;
@@ -446,6 +468,12 @@ export interface MilestoneCalculationParams {
   contractValue: number;
   phases: string[];
   freelancerGSTRegistered: boolean;
+  
+  /** 
+   * Is the client a TDS deductor?
+   * If false, TDS will NOT be calculated regardless of threshold
+   */
+  clientIsTDSDeductor?: boolean;
   
   /** Cumulative amount already paid (for TDS threshold) */
   cumulativeAmountPaid?: number;

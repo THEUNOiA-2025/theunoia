@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgreementDialog } from "@/components/AgreementDialog";
+import { FinancialProfileRequiredDialog } from "@/components/financial";
+import { useFinancialProfile } from "@/hooks/useFinancialProfile";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { z } from "zod";
@@ -97,6 +99,10 @@ const ProjectDetailPage = () => {
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
   const [collaborationDialogOpen, setCollaborationDialogOpen] = useState(false);
+  const [financialDialogOpen, setFinancialDialogOpen] = useState(false);
+  
+  // Financial profile check
+  const { isComplete: hasFinancialProfile, isLoading: financialLoading } = useFinancialProfile();
 
   useEffect(() => {
     if (id) {
@@ -625,13 +631,32 @@ const ProjectDetailPage = () => {
             <div className="sticky top-24 space-y-5">
               {/* Place Bid Button */}
               {canPlaceBid && !userAlreadyBid && creditBalance >= 10 && (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <button className="w-full bg-primary-purple hover:bg-primary-purple/90 text-white py-3.5 rounded-2xl font-extrabold text-sm shadow-xl shadow-primary-purple/40 transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-1.5">
-                      <IndianRupee className="w-3.5 h-3.5" />
-                      Place Your Bid
-                    </button>
-                  </DialogTrigger>
+                <>
+                  {/* Financial Profile Required Dialog */}
+                  <FinancialProfileRequiredDialog
+                    open={financialDialogOpen}
+                    onOpenChange={setFinancialDialogOpen}
+                    action="bid"
+                  />
+                  
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <button 
+                        onClick={(e) => {
+                          // TEMPORARILY DISABLED FOR TESTING - Re-enable when ready
+                          // Check financial profile first
+                          // if (!hasFinancialProfile && !financialLoading) {
+                          //   e.preventDefault();
+                          //   setFinancialDialogOpen(true);
+                          //   return;
+                          // }
+                        }}
+                        className="w-full bg-primary-purple hover:bg-primary-purple/90 text-white py-3.5 rounded-2xl font-extrabold text-sm shadow-xl shadow-primary-purple/40 transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-1.5"
+                      >
+                        <IndianRupee className="w-3.5 h-3.5" />
+                        Place Your Bid
+                      </button>
+                    </DialogTrigger>
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Place Your Bid</DialogTitle>
@@ -708,6 +733,7 @@ const ProjectDetailPage = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+                </>
               )}
 
               {/* Client Info */}
