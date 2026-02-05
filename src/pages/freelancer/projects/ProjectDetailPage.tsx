@@ -253,8 +253,17 @@ const ProjectDetailPage = () => {
 
       const bidAmount = parseFloat(bidFormData.amount);
       const minBid = project.budget ? project.budget * 0.8 : 0;
+      const maxBid = project.budget || Infinity;
+
+      // Validate minimum bid (80% of budget)
       if (project.budget && bidAmount < minBid) {
-        toast.error(`Minimum bid is ₹${minBid.toFixed(0)} (80% of project budget)`);
+        toast.error(`Minimum bid is ₹${Math.ceil(minBid).toLocaleString()} (80% of project budget)`);
+        return;
+      }
+
+      // Validate maximum bid (cannot exceed project budget)
+      if (project.budget && bidAmount > maxBid) {
+        toast.error(`Maximum bid is ₹${maxBid.toLocaleString()} (project budget). You cannot exceed the project budget.`);
         return;
       }
 
@@ -657,76 +666,80 @@ const ProjectDetailPage = () => {
                         Place Your Bid
                       </button>
                     </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Place Your Bid</DialogTitle>
+                      <DialogTitle className="text-base">Place Your Bid</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 mt-4">
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                        <div className="flex items-center gap-2">
-                          <Coins className="w-4 h-4 text-primary-purple" />
-                          <span className="text-sm">Your Credit Balance</span>
+                    <div className="space-y-3 mt-3">
+                      {/* Credit balance and cost - combined row */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 flex-1">
+                          <Coins className="w-3.5 h-3.5 text-primary-purple" />
+                          <span className="text-xs">Balance: <span className="font-bold text-primary-purple">{creditBalance} credits</span></span>
                         </div>
-                        <span className="px-3 py-1 bg-primary-purple text-white text-sm font-bold rounded-full">{creditBalance} credits</span>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-700">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span className="text-xs font-medium">-10 credits</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 text-amber-700">
-                        <AlertTriangle className="w-4 h-4" />
-                        <span className="text-sm">Placing this bid will cost 10 credits</span>
-                      </div>
-                      {/* Token Refund Policy – about the bid */}
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3 space-y-2">
-                        <p className="text-xs font-semibold text-slate-700">Token Refund Policy</p>
-                        <p className="text-[11px] text-slate-600 flex items-start gap-1.5">
-                          <Check className="h-3.5 w-3.5 text-green-600 shrink-0 mt-0.5" />
-                          <span>Refunded only if: {TOKEN_REFUND_POLICY.refundedWhen.join('; ')}</span>
-                        </p>
-                        <p className="text-[11px] text-slate-600 flex items-start gap-1.5">
-                          <X className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                          <span>Not refunded if: {TOKEN_REFUND_POLICY.notRefundedWhen.join('; ')}</span>
-                        </p>
+                      {/* Token Refund Policy – compact */}
+                      <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-2.5 space-y-1">
+                        <p className="text-[10px] font-semibold text-slate-700">Token Refund Policy</p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                          <p className="text-[10px] text-slate-600 flex items-center gap-1">
+                            <Check className="h-3 w-3 text-green-600 shrink-0" />
+                            <span>Refunded if client cancels</span>
+                          </p>
+                          <p className="text-[10px] text-slate-600 flex items-center gap-1">
+                            <X className="h-3 w-3 text-amber-600 shrink-0" />
+                            <span>Not refunded if not selected</span>
+                          </p>
+                        </div>
                       </div>
                       <div>
-                        <Label htmlFor="bid-amount">Bid Amount (₹)</Label>
+                        <Label htmlFor="bid-amount" className="text-sm">Bid Amount (₹)</Label>
                         <Input
                           id="bid-amount"
                           type="number"
-                          placeholder="Enter your bid amount"
+                          placeholder={project?.budget ? `₹${Math.ceil(project.budget * 0.8).toLocaleString()} - ₹${project.budget.toLocaleString()}` : "Enter your bid amount"}
                           value={bidFormData.amount}
                           onChange={(e) => setBidFormData({ ...bidFormData, amount: e.target.value })}
-                          className="mt-1"
+                          className="mt-1 h-9"
                           min={project?.budget ? Math.ceil(project.budget * 0.8) : 0}
+                          max={project?.budget || undefined}
                         />
                         {project?.budget && (
-                          <p className="text-xs text-slate-500 mt-1">
-                            Minimum bid: ₹{Math.ceil(project.budget * 0.8)} (80% of ₹{project.budget} budget)
-                          </p>
+                          <div className="text-[10px] text-slate-500 mt-1 space-y-0.5">
+                            <p>Min bid: ₹{Math.ceil(project.budget * 0.8).toLocaleString()} (80% of budget)</p>
+                            <p>Max bid: ₹{project.budget.toLocaleString()} (Project budget)</p>
+                          </div>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="bid-proposal">Proposal</Label>
+                        <Label htmlFor="bid-proposal" className="text-sm">Proposal</Label>
                         <Textarea
                           id="bid-proposal"
                           placeholder="Describe why you're the best fit for this project..."
                           value={bidFormData.proposal}
                           onChange={(e) => setBidFormData({ ...bidFormData, proposal: e.target.value })}
-                          className="mt-1 min-h-[150px]"
+                          className="mt-1 min-h-[100px]"
                           maxLength={3000}
                         />
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-[10px] text-slate-500 mt-0.5">
                           {bidFormData.proposal.length}/3000 characters
                         </p>
                       </div>
-                      <div className="flex items-start gap-2 p-3 rounded-lg bg-primary-purple/5 border border-primary-purple/10">
-                        <FileText className="w-4 h-4 text-primary-purple shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-slate-600 leading-relaxed">
-                          <span className="font-bold text-primary-purple">Next step:</span> Review your payout breakdown including all deductions (Platform fee, GST, TCS, TDS) before confirming.
+                      <div className="flex items-start gap-2 p-2 rounded-lg bg-primary-purple/5 border border-primary-purple/10">
+                        <FileText className="w-3.5 h-3.5 text-primary-purple shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-slate-600 leading-relaxed">
+                          <span className="font-bold text-primary-purple">Next:</span> Review payout breakdown (Platform fee, GST, TCS, TDS) before confirming.
                         </p>
                       </div>
-                      <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
                           Cancel
                         </Button>
-                        <Button onClick={handlePlaceBid}>
+                        <Button size="sm" onClick={handlePlaceBid}>
                           Review Payout & Continue
                         </Button>
                       </div>
