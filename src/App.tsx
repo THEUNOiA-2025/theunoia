@@ -28,6 +28,7 @@ const StudentVerificationPage = lazy(() => import("./pages/freelancer/verificati
 // Shared pages
 const ProjectDetailPage = lazy(() => import("./pages/freelancer/projects/ProjectDetailPage"));
 const BidsPage = lazy(() => import("./pages/freelancer/bids/BidsPage"));
+const BidPayoutPreviewPage = lazy(() => import("./pages/freelancer/bids/BidPayoutPreviewPage"));
 const MessagesPage = lazy(() => import("./pages/shared/messages/MessagesPage"));
 const CalendarPage = lazy(() => import("./pages/shared/calendar/CalendarPage"));
 const BuyCreditsPage = lazy(() => import("./pages/freelancer/credits/BuyCreditsPage"));
@@ -142,6 +143,14 @@ const App = () => (
                   element={
                     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                       <BidsPage />
+                    </Suspense>
+                  } 
+                />
+                <Route
+                  path="/bid-preview"
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <BidPayoutPreviewPage />
                     </Suspense>
                   } 
                 />

@@ -267,29 +267,23 @@ const ProjectDetailPage = () => {
         return;
       }
 
-      const { error } = await supabase
-        .from("bids")
-        .insert({
-          project_id: id,
-          freelancer_id: user.id,
-          amount: parseFloat(bidFormData.amount),
-          proposal: bidFormData.proposal.trim(),
-          status: 'pending',
-        });
-
-      if (error) throw error;
-      toast.success("Bid placed successfully! 10 credits deducted.");
+      // Close dialog and navigate to payout preview page
       setDialogOpen(false);
-      setBidFormData({ amount: "", proposal: "" });
-      fetchBids();
-      fetchCreditBalance();
-      recordActivity(user.id);
+      
+      // Navigate to bid payout preview page with bid details
+      const params = new URLSearchParams({
+        projectId: id,
+        amount: bidFormData.amount,
+        proposal: encodeURIComponent(bidFormData.proposal.trim()),
+      });
+      navigate(`/bid-preview?${params.toString()}`);
+      
     } catch (error: unknown) {
-      console.error("Error placing bid:", error);
+      console.error("Error validating bid:", error);
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       } else {
-        toast.error("Failed to place bid");
+        toast.error("Failed to validate bid");
       }
     }
   };
@@ -697,35 +691,18 @@ const ProjectDetailPage = () => {
                           {bidFormData.proposal.length}/3000 characters
                         </p>
                       </div>
-                      <div className="flex items-start gap-3 p-4 rounded-lg border border-slate-200 bg-slate-50">
-                        <Checkbox
-                          id="freelancer-agreement"
-                          checked={agreementAccepted}
-                          onCheckedChange={(checked) => setAgreementAccepted(checked === true)}
-                        />
-                        <div className="flex-1">
-                          <label htmlFor="freelancer-agreement" className="text-sm font-medium cursor-pointer">
-                            I agree to the Freelancer Agreement
-                          </label>
-                          <p className="text-xs text-slate-500 mt-1">
-                            By placing this bid, you agree to abide by THEUNOiA's terms including the 5% commission on project value.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setAgreementDialogOpen(true)}
-                            className="text-xs text-primary-purple hover:underline mt-1 flex items-center gap-1"
-                          >
-                            <FileText className="w-3 h-3" />
-                            Read full agreement
-                          </button>
-                        </div>
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-primary-purple/5 border border-primary-purple/10">
+                        <FileText className="w-4 h-4 text-primary-purple shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          <span className="font-bold text-primary-purple">Next step:</span> Review your payout breakdown including all deductions (Platform fee, GST, TCS, TDS) before confirming.
+                        </p>
                       </div>
                       <div className="flex justify-end gap-2 pt-4">
                         <Button variant="outline" onClick={() => setDialogOpen(false)}>
                           Cancel
                         </Button>
-                        <Button onClick={handlePlaceBid} disabled={!agreementAccepted}>
-                          Submit Bid (10 credits)
+                        <Button onClick={handlePlaceBid}>
+                          Review Payout & Continue
                         </Button>
                       </div>
                     </div>
