@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const creationsData = [
   { title: 'VIDEO EDITING' },
@@ -18,6 +18,10 @@ const Navbar = () => {
   const [isAsideOpen, setIsAsideOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Helper to check if a path is active
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -88,9 +92,9 @@ const Navbar = () => {
             <span className="dropdown-icon">▾</span>
           </a>
           <a href="#features">Features</a>
-          <Link to="/blog">Blog</Link>
-          <Link to="/faq">FAQ</Link>
-          <Link to="/contact">Contact</Link>
+          <Link to="/blog" className={isActive('/blog') ? 'act' : ''}>Blog</Link>
+          <Link to="/faq" className={isActive('/faq') ? 'act' : ''}>FAQ</Link>
+          <Link to="/contact" className={isActive('/contact') ? 'act' : ''}>Contact</Link>
         </nav>
 
         <button

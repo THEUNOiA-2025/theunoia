@@ -44,14 +44,14 @@ const AdminCollegesPage = lazy(() => import("./pages/admin/AdminCollegesPage"));
 const AdminBlogsPage = lazy(() => import("./pages/admin/AdminBlogsPage"));
 const AdminCreditsPage = lazy(() => import("./pages/admin/AdminCreditsPage"));
 
-// Blog pages
-const BlogPage = lazy(() => import("./pages/BlogPage"));
+// Blog pages (old - kept for blog detail until new design is provided)
 const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 
-// New Landing page
+// New Landing page and related pages
 const NewLandingPage = lazy(() => import("./pages/landing-page"));
 const NewFAQPage = lazy(() => import("./pages/landing-page/FAQPage"));
 const NewContactPage = lazy(() => import("./pages/landing-page/ContactPage"));
+const NewBlogPage = lazy(() => import("./pages/landing-page/BlogPage"));
 
 // Client: view freelancer dashboard
 const FreelancerViewPage = lazy(() => import("./pages/client/freelancer/FreelancerViewPage"));
@@ -89,7 +89,7 @@ const App = () => (
               <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
               <Route path="/blog" element={
                 <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <BlogPage />
+                  <NewBlogPage />
                 </Suspense>
               } />
               <Route path="/blog/:slug" element={
