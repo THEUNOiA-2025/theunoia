@@ -10,7 +10,8 @@ import { GlobalNotificationProvider } from "./components/GlobalNotificationProvi
 import { DashboardLayout } from "./components/DashboardLayout";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { RoleBasedRoute } from "./components/RoleBasedRoute";
-import Index from "./pages/Index";
+// Old landing page (kept for reference, can be removed later)
+// import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -47,6 +48,11 @@ const AdminCreditsPage = lazy(() => import("./pages/admin/AdminCreditsPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 
+// New Landing page
+const NewLandingPage = lazy(() => import("./pages/landing-page"));
+const NewFAQPage = lazy(() => import("./pages/landing-page/FAQPage"));
+const NewContactPage = lazy(() => import("./pages/landing-page/ContactPage"));
+
 // Client: view freelancer dashboard
 const FreelancerViewPage = lazy(() => import("./pages/client/freelancer/FreelancerViewPage"));
 // Client: post new project
@@ -63,11 +69,23 @@ const App = () => (
         <BrowserRouter>
           <GlobalNotificationProvider>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <NewLandingPage />
+                </Suspense>
+              } />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
-              <Route path="/faq" element={<FAQPage />} />
-              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/faq" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <NewFAQPage />
+                </Suspense>
+              } />
+              <Route path="/contact" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <NewContactPage />
+                </Suspense>
+              } />
               <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
               <Route path="/blog" element={
                 <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
