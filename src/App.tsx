@@ -26,7 +26,7 @@ const IndependentProjectsPage = lazy(() => import("./pages/freelancer/profile/In
 const StudentVerificationPage = lazy(() => import("./pages/freelancer/verification/StudentVerificationPage"));
 
 // Shared pages
-const ProjectDetailPage = lazy(() => import("./pages/freelancer/projects/ProjectDetailPage"));
+const ProjectDetailWrapper = lazy(() => import("./pages/shared/projects/ProjectDetailWrapper"));
 const BidsPage = lazy(() => import("./pages/freelancer/bids/BidsPage"));
 const BidPayoutPreviewPage = lazy(() => import("./pages/freelancer/bids/BidPayoutPreviewPage"));
 const MessagesPage = lazy(() => import("./pages/shared/messages/MessagesPage"));
@@ -82,12 +82,12 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               
-              {/* Public project detail route (no sidebar) */}
+              {/* Project detail route - shows client or freelancer view based on ownership */}
               <Route 
                 path="/projects/:id" 
                 element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <ProjectDetailPage />
+                    <ProjectDetailWrapper />
                   </Suspense>
                 } 
               />
