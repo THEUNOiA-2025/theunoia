@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './styles.css';
+import theunoiaLogo from "../public/images/theunoia-logo.png";
+
 
 // Creations data for dropdown
 const creationsData = [
@@ -195,7 +197,7 @@ const ContactPage = () => {
       <header className="landing-navbar">
         <div className="landing-logo">
           <Link to="/">
-            <img src="../public/images/theunoia-logo.png" alt="Theunoia" />
+            <img src={theunoiaLogo} alt="Theunoia" />
           </Link>
         </div>
 
