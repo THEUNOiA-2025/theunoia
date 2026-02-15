@@ -201,7 +201,7 @@ const ContactPage = () => {
 
         <nav className="landing-nav-links">
           <a
-            href="#creations"
+            href="creations"
             className={`has-creations ${isCreationsOpen ? 'open' : ''}`}
             onMouseEnter={() => handleCreationsHover(true)}
             onMouseLeave={() => handleCreationsHover(false)}
@@ -209,7 +209,7 @@ const ContactPage = () => {
             Our Creations
             <span className="dropdown-icon">▾</span>
           </a>
-          <a href="#features">Features</a>
+          <a href="features">Features</a>
           <Link to="/blog">Blog</Link>
           <Link to="/faq">FAQ</Link>
           <Link to="/contact" className="active">
