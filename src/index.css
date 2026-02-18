@@ -590,25 +590,29 @@ animation: logoShake 3s ease-in-out infinite;
 /* SCROLL INTRO FINAL */
 /* ================================= */
 
-.scroll-intro{
+.scroll-intro {
 
-position:relative;
+position: relative;
 
-height:100vh;
+min-height: 100vh;
 
-display:flex;
+display: flex;
 
-flex-direction:column;
+flex-direction: column;
 
-justify-content:center;
+align-items: center;
 
-align-items:center;
+justify-content: center;
 
-background:#f4f4f4;
+text-align: center;
 
-overflow:hidden;
+padding-left: 20px;
+padding-right: 20px;
+
+overflow: hidden;
 
 }
+
 
 
 
@@ -630,19 +634,18 @@ z-index:1;
 
 
 
-.logo{
+.logo {
 
-opacity:0;
+margin-bottom: 40px;
 
-margin-top:120px;
+display: flex;
 
-margin-bottom:40px;
+justify-content: center;
 
-transition:.6s;
-
-z-index:2;
+align-items: center;
 
 }
+
 
 
 
@@ -651,7 +654,7 @@ z-index:2;
 opacity:1;
 
 }
-#headline{
+#headline {
 
 font-size: clamp(42px, 5.2vw, 72px);
 
@@ -662,15 +665,18 @@ line-height: 1.12;
 letter-spacing: -0.03em;
 
 text-align: center;
-
-/* ⭐ THIS IS THE REAL FIX */
+width: 100%;
 max-width: 2000px;
 
-width: 2000px;
+margin-left: auto;
+margin-right: auto;
 
-margin: 0 auto;
+display: block;
+
+word-break: keep-all;
 
 }
+
 .typing-cursor{
 
 display:inline-block;
