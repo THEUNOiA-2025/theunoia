@@ -82,7 +82,7 @@ const Navbar = () => {
 
         <nav className="landing-nav-links">
           <a
-            href="#creations"
+            href="creations"
             className={`has-creations ${isCreationsOpen || isAsideOpen ? 'open' : ''}`}
             onClick={handleCreationsClick}
             onMouseEnter={() => handleCreationsHover(true)}
@@ -91,7 +91,7 @@ const Navbar = () => {
             Our Creations
             <span className="dropdown-icon">▾</span>
           </a>
-          <a href="#features">Features</a>
+          <a href="features">Features</a>
           <Link to="/blog" className={isActive('/blog') ? 'act' : ''}>Blog</Link>
           <Link to="/faq" className={isActive('/faq') ? 'act' : ''}>FAQ</Link>
           <Link to="/contact" className={isActive('/contact') ? 'act' : ''}>Contact</Link>
