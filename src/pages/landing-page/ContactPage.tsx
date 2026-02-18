@@ -140,7 +140,7 @@ const ContactPage = () => {
   const infoCards = [
     {
       title: 'Head Office',
-      info: 'Jalan Camplung Miner No 22<br>Jakarta - Indonesia',
+      info: 'M/S THEUNOiA LLP Lakshmi nagar Chandrapur<br>Maharashtra-442401',
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -157,7 +157,7 @@ const ContactPage = () => {
     },
     {
       title: 'Email us',
-      info: 'support@yourdomain.ltd<br>hello@yourdomain.ltd',
+      info: 'Support@theunoia.com',
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -174,7 +174,7 @@ const ContactPage = () => {
     },
     {
       title: 'Call us',
-      info: 'Phone: +6221-0002-2032<br>Fax: +6221-0002-2033',
+      info: 'Phone: +91 6374214583',
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -404,7 +404,7 @@ const ContactPage = () => {
           <div className="hero-right">
             <img
               className="hero-image"
-              src="/assets/wolf.jpg"
+              src="/images/wolf.jpg"
               alt="Person working on laptop"
             />
           </div>

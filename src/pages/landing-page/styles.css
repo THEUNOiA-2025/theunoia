@@ -473,7 +473,7 @@
   width: 180px;
   height: 180px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--lp-primary), #5b45c9);
+  background: var(--lp-primary);
   transform: scale(0) rotate(0deg);
   will-change: transform;
   z-index: 1;
@@ -547,12 +547,7 @@
   margin-bottom: 20px;
 }
 
-.landing-page .intro-label::before {
-  content: "";
-  width: 40px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--lp-accent-text), transparent);
-}
+
 
 .landing-page .intro-main-title {
   font-size: clamp(48px, 6vw, 72px);
@@ -784,15 +779,23 @@
 /* ===== OUR SERVICES ===== */
 
 .landing-page .services-container {
-  margin-top: 100px;
+  padding-top: 100px;
+  padding-bottom: 150px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+.landing-page .our-services {
+  background-image: url("/images/ourservices.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .landing-page .our-services h1 {
-  color: #7e63f8;
+  color: #000000;
   font-size: 4rem;
   margin-bottom: 4rem;
   font-weight: 900;
@@ -954,7 +957,6 @@
 /* ================= STICKY GRID SECTION ================= */
 
 .landing-page .sticky-root {
-  margin-top: 150px;
   position: relative;
   isolation: isolate;
   transform: none !important;
@@ -986,14 +988,14 @@
   grid-template-rows: repeat(3, 1fr);
   gap: 24px;
   padding: 24px;
-  background: #5a5a5a;
+  background: #999999;
 }
 
 /* GRID CELL */
 .landing-page .landing-cell {
   height: 100%;
   border: 1px solid var(--lp-border-light);
-  background: #fff;
+  background: #999999;
   border-radius: 20px;
   opacity: 0;
   overflow: hidden;
@@ -1012,14 +1014,14 @@
 .landing-page .cell-card.premium {
   height: 100%;
   width: 100%;
-  padding: 22px 20px;
+  padding: 0;
   border-radius: 20px;
+  overflow: hidden;
   border: 1px solid rgba(212, 166, 63, 0.18);
-  background: #fff;
+  background: #999999;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -1028,70 +1030,22 @@
     box-shadow 0.45s ease;
 }
 
+.landing-page .cell-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+  animation: lp-float 3s ease-in-out infinite;
+}
+
+
 /* HOVER (NO LAYOUT SHIFT) */
 .landing-page .landing-cell:hover .cell-card {
   transform: translateY(-6px);
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-/* HEADING */
-.landing-page .cell-heading {
-  font-size: 20px;
-  font-weight: 900;
-  color: #3a2a1a;
-  text-align: center;
-  line-height: 1.2;
-  animation: lp-float 3s ease-in-out infinite;
-}
-
-/* NUMBER */
-.landing-page .cell-number {
-  font-size: 38px;
-  font-weight: 800;
-  color: #d4a63f;
-  line-height: 1;
-  animation: lp-float 3s ease-in-out infinite;
-}
-
-/* IMAGE */
-.landing-page .cell-image-wrap {
-  width: 110px;
-  height: 90px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: lp-float 3s ease-in-out infinite;
-}
-
-.landing-page .cell-image-wrap img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.12));
-}
-
-/* FINAL TEXT */
-.landing-page .cell-text {
-  font-size: 15px;
-  color: #6b4b2a;
-  opacity: 0.9;
-  text-align: center;
-  line-height: 1.3;
-  margin-top: auto;
-  animation: lp-float 3s ease-in-out infinite;
-}
-
-/* FLOAT ANIMATION */
-@keyframes lp-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
 }
 
 /* =========================
@@ -1115,6 +1069,16 @@
 .landing-page .main-card h1 {
   font-size: 72px;
   letter-spacing: -0.03em;
+}
+
+/* FLOAT ANIMATION */
+@keyframes lp-float {
+  0%, 100% {
+    transform: translateX(6px);
+  }
+  50% {
+    transform: translateX(-6px);
+  }
 }
 
 @media (max-width: 1024px) {
@@ -1173,6 +1137,7 @@
 .landing-page .typography-section {
   height: 55vh;
   background: #ffffff;
+  color: #0b0b45;
   display: flex;
   align-items: center;
   padding-left: 8vw;
@@ -1863,7 +1828,7 @@
 
 .landing-page .footer-links {
   margin-right: 120px;
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .landing-page .footer-social {

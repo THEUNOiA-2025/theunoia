@@ -294,7 +294,7 @@ const FAQPage = () => {
           <div className="hero-right">
             <img
               className="hero-image"
-              src="/assets/wolf.jpg"
+              src="/images/wolf.jpg"
               alt="Person working on laptop"
             />
           </div>
