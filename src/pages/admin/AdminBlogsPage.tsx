@@ -69,9 +69,11 @@ interface BlogFormData {
   content: string;
   cover_image_url: string;
   blog_images: string[];
+  meta_title: string;
+  meta_description: string;
+  canonical_url: string;
   status: string;
 }
-
 const initialFormData: BlogFormData = {
   title: '',
   slug: '',
@@ -79,8 +81,14 @@ const initialFormData: BlogFormData = {
   content: '',
   cover_image_url: '',
   blog_images: [],
+
+  meta_title: '',
+  meta_description: '',
+  canonical_url: '',
+
   status: 'draft',
 };
+
 
 const AdminBlogsPage = () => {
   const { user } = useAuth();
@@ -166,15 +174,7 @@ const AdminBlogsPage = () => {
   const handleOpenDialog = (blog?: Blog) => {
     if (blog) {
       setEditingBlog(blog);
-      setFormData({
-        title: blog.title,
-        slug: blog.slug,
-        excerpt: blog.excerpt || '',
-        content: blog.content,
-        cover_image_url: blog.cover_image_url || '',
-        blog_images: blog.blog_images || [],
-        status: blog.status,
-      });
+      
     } else {
       setEditingBlog(null);
       setFormData(initialFormData);
@@ -288,6 +288,54 @@ const AdminBlogsPage = () => {
                   onCoverChange={(url) => setFormData(prev => ({ ...prev, cover_image_url: url }))}
                 />
               </div>
+              {/* Meta Title */}
+<div className="space-y-2">
+  <Label htmlFor="meta_title">Meta Title</Label>
+  <Input
+    id="meta_title"
+    value={formData.meta_title}
+    onChange={(e) =>
+      setFormData(prev => ({
+        ...prev,
+        meta_title: e.target.value,
+      }))
+    }
+    placeholder="Enter meta title"
+  />
+</div>
+
+{/* Meta Description */}
+<div className="space-y-2">
+  <Label htmlFor="meta_description">Meta Description</Label>
+  <Textarea
+    id="meta_description"
+    value={formData.meta_description}
+    onChange={(e) =>
+      setFormData(prev => ({
+        ...prev,
+        meta_description: e.target.value,
+      }))
+    }
+    placeholder="Enter meta description"
+    rows={3}
+  />
+</div>
+
+{/* Canonical URL */}
+<div className="space-y-2">
+  <Label htmlFor="canonical_url">Canonical URL</Label>
+  <Input
+    id="canonical_url"
+    value={formData.canonical_url}
+    onChange={(e) =>
+      setFormData(prev => ({
+        ...prev,
+        canonical_url: e.target.value,
+      }))
+    }
+    placeholder="https://example.com/blog/post"
+  />
+</div>
 
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
