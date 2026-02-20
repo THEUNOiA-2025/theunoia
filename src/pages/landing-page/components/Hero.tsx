@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-const words = ['CREATIVITY.', 'STRATEGY.', 'CONTENT.', 'CREATIVITY.'];
+const words = ['EXPERT.', 'ACCOUNTABLE.', 'QUALIFIED.', 'CREATIVITY.'];
 
 const Hero = () => {
   const rotatorRef = useRef<HTMLDivElement>(null);
@@ -79,7 +79,7 @@ const Hero = () => {
 
             <div className="hero-content-wrapper">
               <div className="landing-hero-text">
-                We lead with content. We scale with digital.
+                You dream it. We deliver it.
               </div>
             </div>
           </div>

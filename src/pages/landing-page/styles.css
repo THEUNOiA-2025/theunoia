@@ -2812,16 +2812,8 @@
   }
   .landing-page .hero-image {
     height: 300px;
-    width: 100%;
     margin-right: 0;
     transform: none;
-    object-fit: cover;
-    /*
-     * wolf.jpg is 1080×1920 (portrait) — wolf is centered vertically.
-     * object-position:center top crops the top 15% = just gray bg.
-     * center center shows the wolf's face.
-     */
-    object-position: center center;
   }
 }
 
