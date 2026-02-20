@@ -257,13 +257,13 @@ const AdminBlogsPage = () => {
               New Blog Post
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl h-[90vh] overflow-y-scroll">
             <DialogHeader>
               <DialogTitle>
                 {editingBlog ? 'Edit Blog Post' : 'Create New Blog Post'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 pb-20">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
@@ -585,4 +585,4 @@ const AdminBlogsPage = () => {
   );
 };
 
-export default AdminBlogsPage;
+export default AdminBlogsPage; 

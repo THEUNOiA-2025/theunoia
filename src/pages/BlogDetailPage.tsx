@@ -1,16 +1,27 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Calendar, Clock, Share2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { ImageGallery } from '@/components/ImageGallery';
 
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Share2
+} from "lucide-react";
+
+import { format } from "date-fns";
+import { toast } from "sonner";
+
+import { ImageGallery } from "@/components/ImageGallery";
+
+
+/* TYPE */
 
 interface Blog {
 
@@ -19,6 +30,7 @@ interface Blog {
   slug: string;
   excerpt: string | null;
   content: string;
+
   cover_image_url: string | null;
   blog_images: string[] | null;
 
@@ -32,23 +44,35 @@ interface Blog {
 }
 
 
-const BlogDetailPage = () => {
+
+export default function BlogDetailPage() {
 
   const { slug } = useParams<{ slug: string }>();
 
 
-  const { data: blog, isLoading, error } = useQuery({
+  /* FETCH BLOG */
 
-    queryKey: ['blog', slug],
+  const {
+
+    data: blog,
+    isLoading,
+    error
+
+  } = useQuery<Blog | null>({
+
+    queryKey: ["blog", slug],
 
     queryFn: async () => {
 
-      const { data, error } = await supabase
-        .from('blogs')
-        .select('*')
-        .eq('slug', slug)
-        .eq('status', 'published')
-        .single();
+      if (!slug) return null;
+
+      const { data, error } =
+        await supabase
+          .from("blogs")
+          .select("*")
+          .eq("slug", slug)
+          .eq("status", "published")
+          .single();
 
       if (error) throw error;
 
@@ -56,118 +80,84 @@ const BlogDetailPage = () => {
 
     },
 
-    enabled: !!slug,
+    enabled: !!slug
 
   });
 
 
 
+  /* SHARE */
+
   const handleShare = async () => {
 
-    try {
+    await navigator.clipboard.writeText(
 
-      await navigator.clipboard.writeText(window.location.href);
+      window.location.href
 
-      toast.success('Link copied to clipboard!');
+    );
 
-    }
-    catch {
-
-      toast.error('Failed to copy link');
-
-    }
+    toast.success("Link copied");
 
   };
 
 
 
-  if (isLoading) {
+  /* LOADING */
+
+  if (isLoading)
 
     return (
 
-      <div className="min-h-screen bg-background">
+      <>
 
         <Header />
 
-        <div className="pt-32 pb-16 px-4">
+        <Skeleton className="h-screen" />
 
-          <div className="container mx-auto max-w-4xl">
+        <Footer />
 
-            <Skeleton className="h-8 w-32 mb-8" />
+      </>
 
-            <Skeleton className="h-12 w-3/4 mb-4" />
+    );
 
-            <Skeleton className="h-6 w-1/2 mb-8" />
 
-            <Skeleton className="h-[400px] w-full rounded-xl mb-8" />
 
-          </div>
+  /* ERROR */
+
+  if (!blog || error)
+
+    return (
+
+      <>
+
+        <Header />
+
+        <div className="pt-40 text-center text-xl font-semibold">
+
+          Article Not Found
 
         </div>
 
         <Footer />
 
-      </div>
+      </>
 
     );
 
-  }
 
 
-
-  if (error || !blog) {
-
-    return (
-
-      <div className="min-h-screen bg-background">
-
-        <Header />
-
-        <div className="pt-32 pb-16 px-4">
-
-          <div className="container mx-auto max-w-4xl text-center">
-
-            <h1 className="text-3xl font-bold text-foreground mb-4">
-
-              Article Not Found
-
-            </h1>
-
-            <Link to="/blog">
-
-              <Button>
-
-                <ArrowLeft className="mr-2 h-4 w-4" />
-
-                Back to Blog
-
-              </Button>
-
-            </Link>
-
-          </div>
-
-        </div>
-
-        <Footer />
-
-      </div>
-
-    );
-
-  }
-
-
-
-  /* FINAL SEO VALUES */
+  /* SEO */
 
   const seoTitle =
-    blog.meta_title || blog.title;
+    blog.meta_title ||
+    `${blog.title} | THEUNOIA`;
+
 
   const seoDescription =
     blog.meta_description ||
     blog.excerpt ||
     "";
+
 
   const seoCanonical =
     blog.canonical_url ||
@@ -175,228 +165,220 @@ const BlogDetailPage = () => {
 
 
 
+  /* UI */
+
   return (
 
     <>
 
-      {/* SEO TAGS */}
-<Helmet>
+      {/* SEO */}
 
-<title>
-{blog.meta_title
-? blog.meta_title
-: `${blog.title} | THEUNOIA`}
-</title>
+      <Helmet>
 
+        <title>
 
-<meta
-name="description"
-content={
-blog.meta_description
-? blog.meta_description
-: blog.excerpt || ""
-}
-/>
+          {seoTitle}
+
+        </title>
 
 
-<link
-rel="canonical"
-href={
-blog.canonical_url
-? blog.canonical_url
-: `https://www.theunoia.com/blog/${blog.slug}`
-}
-/>
+        <meta
+
+          name="description"
+
+          content={seoDescription}
+
+        />
 
 
-</Helmet>
+        <link
+
+          rel="canonical"
+
+          href={seoCanonical}
+
+        />
+
+      </Helmet>
 
 
 
-      <div className="min-h-screen bg-background">
-
-        <Header />
-
-
-        <article className="pt-32 pb-16 px-4">
-
-
-          <div className="container mx-auto max-w-4xl">
-
-
-            <Link
-              to="/blog"
-              className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8"
-            >
-
-              <ArrowLeft className="mr-2 h-4 w-4" />
-
-              Back to Blog
-
-            </Link>
+      <Header />
 
 
 
-            {/* ONLY ONE H1 FOR SEO */}
-
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">
-
-              {blog.title}
-
-            </h1>
+      <article className="pt-32 pb-16 px-4">
 
 
-
-            <div className="flex gap-4 mb-8 text-muted-foreground">
-
-
-              <span className="flex items-center gap-1">
-
-                <Calendar className="h-4 w-4" />
-
-                {format(
-                  new Date(
-                    blog.published_at ||
-                    blog.created_at
-                  ),
-                  'MMMM d, yyyy'
-                )}
-
-              </span>
+        <div className="max-w-4xl mx-auto">
 
 
-              <span className="flex items-center gap-1">
+          {/* BACK */}
 
-                <Clock className="h-4 w-4" />
+          <Link to="/blog">
 
-                5 min read
+            <Button variant="ghost">
 
-              </span>
+              <ArrowLeft className="mr-2 h-4 w-4"/>
+
+              Back
+
+            </Button>
+
+          </Link>
 
 
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-              >
+          {/* TITLE */}
 
-                <Share2 className="h-4 w-4 mr-1" />
+          <h1 className="text-5xl font-bold mt-6 mb-4">
 
-                Share
+            {blog.title}
 
-              </Button>
-
-            </div>
+          </h1>
 
 
 
-            {/* COVER IMAGE FIXED */}
+          {/* META INFO */}
 
-            {blog.cover_image_url && (
-
-              <div className="mb-10">
-
-                <img
-                  src={blog.cover_image_url}
-                  alt={blog.title}
-                  className="w-full h-auto max-h-[600px] object-contain rounded-xl"
-                />
-
-              </div>
-
-            )}
+          <div className="flex gap-6 text-muted-foreground mb-8">
 
 
+            <span className="flex items-center gap-2">
 
-            {/* GALLERY */}
+              <Calendar className="h-4 w-4"/>
 
-            {blog.blog_images &&
-              blog.blog_images.length > 1 && (
+              {format(
 
-                <div className="mb-8">
+                new Date(
 
-                  <ImageGallery
-                    images={
-                      blog.blog_images.filter(
-                        img =>
-                          img !== blog.cover_image_url
-                      )
-                    }
-                    coverImageUrl={
-                      blog.cover_image_url
-                    }
-                  />
+                  blog.published_at ||
+                  blog.created_at
 
-                </div>
+                ),
+
+                "MMMM d, yyyy"
 
               )}
 
+            </span>
 
 
-            {/* EXCERPT */}
+            <span className="flex items-center gap-2">
 
-            {blog.excerpt && (
+              <Clock className="h-4 w-4"/>
 
-              <p className="text-xl mb-8 italic">
+              5 min read
 
-                {blog.excerpt}
-
-              </p>
-
-            )}
+            </span>
 
 
+            <Button
+              variant="ghost"
+              onClick={handleShare}
+            >
 
-            {/* CONTENT */}
-<div
-  className="
-    prose prose-lg max-w-none dark:prose-invert
+              <Share2 className="h-4 w-4 mr-2"/>
 
-    prose-h1:text-4xl prose-h1:font-bold prose-h1:mb-6
+              Share
 
-    prose-h2:text-4xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4
-
-    prose-h3:text-2xl prose-h3:font-semibold prose-h3:mt-8 prose-h3:mb-3
-
-    prose-p:text-base prose-p:leading-relaxed prose-p:mb-4
-
-    prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-6
-    prose-ul:list-inside
-
-    prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-6
-    prose-ol:list-inside
-
-    prose-li:mb-2
-
-    prose-a:text-primary prose-a:font-medium hover:prose-a:underline
-
-    prose-strong:font-semibold
-
-    prose-img:rounded-xl prose-img:shadow-md prose-img:mx-auto
-  "
-  dangerouslySetInnerHTML={{
-    __html: blog.content
-  }}
-/>
-</div>
+            </Button>
 
 
-        </article>
+          </div>
 
 
 
-        <Footer />
+          {/* COVER IMAGE */}
+
+          {blog.cover_image_url && (
+
+            <img
+
+              src={blog.cover_image_url}
+
+              alt={blog.title}
+
+              className="rounded-xl mb-10"
+
+            />
+
+          )}
 
 
-      </div>
 
+          {/* GALLERY */}
+
+          {blog.blog_images &&
+            blog.blog_images.length > 1 && (
+
+              <ImageGallery
+
+                images={blog.blog_images}
+
+                coverImageUrl={blog.cover_image_url}
+
+              />
+
+          )}
+
+
+
+          {/* EXCERPT */}
+
+          {blog.excerpt && (
+
+            <p className="italic mb-8 text-lg">
+
+              {blog.excerpt}
+
+            </p>
+
+          )}
+
+
+
+          {/* CONTENT — FINAL FIX */}
+
+          <div
+
+            className="
+
+              prose
+
+              prose-lg
+
+              max-w-none
+
+              prose-ul:list-disc
+              prose-ul:pl-6
+
+              prose-ol:list-decimal
+              prose-ol:pl-6
+
+              prose-li:mb-2
+
+            "
+
+            dangerouslySetInnerHTML={{
+
+              __html: blog.content
+
+            }}
+
+          />
+
+
+        </div>
+
+      </article>
+
+
+
+      <Footer />
 
     </>
 
   );
 
-};
-
-
-export default BlogDetailPage;
+}
