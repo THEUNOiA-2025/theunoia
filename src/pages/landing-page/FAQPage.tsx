@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './styles.css';
 
@@ -159,8 +159,21 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
 
 const FAQPage = () => {
   const [isCreationsOpen, setIsCreationsOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
+
+  const toggleNav = () => setIsNavOpen((prev) => !prev);
+
+  // Sync body class for CSS nav drawer
+  useEffect(() => {
+    if (isNavOpen) {
+      document.body.classList.add('nav-open');
+    } else {
+      document.body.classList.remove('nav-open');
+    }
+    return () => document.body.classList.remove('nav-open');
+  }, [isNavOpen]);
 
   const handleCreationsHover = (isHovering: boolean) => {
     setIsCreationsOpen(isHovering);
@@ -182,7 +195,7 @@ const FAQPage = () => {
           </Link>
         </div>
 
-        <nav className="landing-nav-links">
+        <nav className={`landing-nav-links${isNavOpen ? ' is-open' : ''}`}>
           <a
             href="creations"
             className={`has-creations ${isCreationsOpen ? 'open' : ''}`}
@@ -197,6 +210,17 @@ const FAQPage = () => {
           <Link to="/faq" className="active">FAQ</Link>
           <Link to="/contact">Contact</Link>
         </nav>
+
+        <button
+          className={`landing-nav-toggle${isNavOpen ? ' is-open' : ''}`}
+          aria-label={isNavOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isNavOpen}
+          onClick={toggleNav}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
         <div className="landing-nav-actions">
           <button

@@ -85,6 +85,7 @@ const InfoCard = ({
 
 const ContactPage = () => {
   const [isCreationsOpen, setIsCreationsOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [formData, setFormData] = useState({
@@ -96,6 +97,18 @@ const ContactPage = () => {
   const navigate = useNavigate();
   const topMaskRef = useRef<HTMLDivElement>(null);
   const bottomMaskRef = useRef<HTMLDivElement>(null);
+
+  const toggleNav = () => setIsNavOpen((prev) => !prev);
+
+  // Sync body class for CSS nav drawer
+  useEffect(() => {
+    if (isNavOpen) {
+      document.body.classList.add('nav-open');
+    } else {
+      document.body.classList.remove('nav-open');
+    }
+    return () => document.body.classList.remove('nav-open');
+  }, [isNavOpen]);
 
   // Contact reveal animation
   useEffect(() => {
@@ -200,7 +213,7 @@ const ContactPage = () => {
           </Link>
         </div>
 
-        <nav className="landing-nav-links">
+        <nav className={`landing-nav-links${isNavOpen ? ' is-open' : ''}`}>
           <a
             href="creations"
             className={`has-creations ${isCreationsOpen ? 'open' : ''}`}
@@ -218,7 +231,12 @@ const ContactPage = () => {
           </Link>
         </nav>
 
-        <button className="landing-nav-toggle" aria-label="Toggle menu">
+        <button
+          className={`landing-nav-toggle${isNavOpen ? ' is-open' : ''}`}
+          aria-label={isNavOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isNavOpen}
+          onClick={toggleNav}
+        >
           <span></span>
           <span></span>
           <span></span>
