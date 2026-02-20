@@ -195,7 +195,7 @@ export default function BlogDetailPage() {
 
           rel="canonical"
 
-          href={seoCanonical}
+          href={`https://www.theunoia.com/blog/${blog.slug}`}
 
         />
 
