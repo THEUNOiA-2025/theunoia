@@ -13,6 +13,7 @@ import { ImageGallery } from '@/components/ImageGallery';
 
 
 interface Blog {
+
   id: string;
   title: string;
   slug: string;
@@ -21,13 +22,13 @@ interface Blog {
   cover_image_url: string | null;
   blog_images: string[] | null;
 
-  // SEO fields
   meta_title: string | null;
   meta_description: string | null;
   canonical_url: string | null;
 
   published_at: string | null;
   created_at: string;
+
 }
 
 
@@ -43,22 +44,15 @@ const BlogDetailPage = () => {
     queryFn: async () => {
 
       const { data, error } = await supabase
-
         .from('blogs')
-
         .select('*')
-
         .eq('slug', slug)
-
         .eq('status', 'published')
-
         .single();
-
 
       if (error) throw error;
 
       return data as unknown as Blog;
-
 
     },
 
@@ -77,7 +71,6 @@ const BlogDetailPage = () => {
       toast.success('Link copied to clipboard!');
 
     }
-
     catch {
 
       toast.error('Failed to copy link');
@@ -166,53 +159,58 @@ const BlogDetailPage = () => {
 
 
 
+  /* FINAL SEO VALUES */
+
+  const seoTitle =
+    blog.meta_title || blog.title;
+
+  const seoDescription =
+    blog.meta_description ||
+    blog.excerpt ||
+    "";
+
+  const seoCanonical =
+    blog.canonical_url ||
+    `https://www.theunoia.com/blog/${blog.slug}`;
+
+
+
   return (
 
     <>
 
       {/* SEO TAGS */}
 
-      <Helmet>
+      <Helmet prioritizeSeoTags>
 
-
-        <title>
-
-          {blog.meta_title || blog.title}
-
-        </title>
+        <title>{seoTitle}</title>
 
 
         <meta
-
           name="description"
+          content={seoDescription}
+        />
 
-          content={
 
-            blog.meta_description ||
+        <meta property="og:title" content={seoTitle} />
 
-            blog.excerpt ||
 
-            ""
+        <meta
+          property="og:description"
+          content={seoDescription}
+        />
 
-          }
 
+        <meta
+          property="og:url"
+          content={seoCanonical}
         />
 
 
         <link
-
           rel="canonical"
-
-          href={
-
-            blog.canonical_url ||
-
-            window.location.href
-
-          }
-
+          href={seoCanonical}
         />
-
 
       </Helmet>
 
@@ -230,11 +228,8 @@ const BlogDetailPage = () => {
 
 
             <Link
-
               to="/blog"
-
               className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8"
-
             >
 
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -244,6 +239,8 @@ const BlogDetailPage = () => {
             </Link>
 
 
+
+            {/* ONLY ONE H1 FOR SEO */}
 
             <h1 className="text-3xl md:text-5xl font-bold mb-4">
 
@@ -255,22 +252,17 @@ const BlogDetailPage = () => {
 
             <div className="flex gap-4 mb-8 text-muted-foreground">
 
+
               <span className="flex items-center gap-1">
 
                 <Calendar className="h-4 w-4" />
 
                 {format(
-
                   new Date(
-
                     blog.published_at ||
-
                     blog.created_at
-
                   ),
-
                   'MMMM d, yyyy'
-
                 )}
 
               </span>
@@ -287,13 +279,9 @@ const BlogDetailPage = () => {
 
 
               <Button
-
                 variant="ghost"
-
                 size="sm"
-
                 onClick={handleShare}
-
               >
 
                 <Share2 className="h-4 w-4 mr-1" />
@@ -302,33 +290,54 @@ const BlogDetailPage = () => {
 
               </Button>
 
-
             </div>
 
 
-{/* Cover Image - FULL WIDTH NO CROP */}
-{blog.cover_image_url && (
-  <div className="mb-10">
-    <img
-      src={blog.cover_image_url}
-      alt={blog.title}
-      className="w-full h-auto max-h-[600px] object-contain rounded-xl"
-    />
-  </div>
-)}
 
-{/* Optional Gallery Below */}
-{blog.blog_images && blog.blog_images.length > 1 && (
-  <div className="mb-8">
-    <ImageGallery 
-      images={blog.blog_images.filter(img => img !== blog.cover_image_url)} 
-      coverImageUrl={blog.cover_image_url}
-    />
-  </div>
-)}
+            {/* COVER IMAGE FIXED */}
+
+            {blog.cover_image_url && (
+
+              <div className="mb-10">
+
+                <img
+                  src={blog.cover_image_url}
+                  alt={blog.title}
+                  className="w-full h-auto max-h-[600px] object-contain rounded-xl"
+                />
+
+              </div>
+
+            )}
 
 
 
+            {/* GALLERY */}
+
+            {blog.blog_images &&
+              blog.blog_images.length > 1 && (
+
+                <div className="mb-8">
+
+                  <ImageGallery
+                    images={
+                      blog.blog_images.filter(
+                        img =>
+                          img !== blog.cover_image_url
+                      )
+                    }
+                    coverImageUrl={
+                      blog.cover_image_url
+                    }
+                  />
+
+                </div>
+
+              )}
+
+
+
+            {/* EXCERPT */}
 
             {blog.excerpt && (
 
@@ -342,16 +351,13 @@ const BlogDetailPage = () => {
 
 
 
+            {/* CONTENT */}
+
             <div
-
-              className="prose max-w-none"
-
+              className="prose prose-lg max-w-none dark:prose-invert"
               dangerouslySetInnerHTML={{
-
                 __html: blog.content
-
               }}
-
             />
 
 
@@ -373,7 +379,6 @@ const BlogDetailPage = () => {
   );
 
 };
-
 
 
 export default BlogDetailPage;

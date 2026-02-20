@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,6 +62,10 @@ interface Blog {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+   meta_title: string | null;
+  meta_description: string | null;
+  canonical_url: string | null;
+
 }
 
 interface BlogFormData {
@@ -172,15 +178,40 @@ const AdminBlogsPage = () => {
   });
 
   const handleOpenDialog = (blog?: Blog) => {
-    if (blog) {
-      setEditingBlog(blog);
-      
-    } else {
-      setEditingBlog(null);
-      setFormData(initialFormData);
-    }
-    setIsDialogOpen(true);
-  };
+
+  if (blog) {
+
+    setEditingBlog(blog);
+
+    setFormData({
+      title: blog.title || '',
+      slug: blog.slug || '',
+      excerpt: blog.excerpt || '',
+      content: blog.content || '',
+      cover_image_url: blog.cover_image_url || '',
+      blog_images: blog.blog_images || [],
+
+      meta_title: blog.meta_title || '',
+      meta_description: blog.meta_description || '',
+      canonical_url: blog.canonical_url || '',
+
+      status: blog.status || 'draft',
+    });
+
+  }
+
+  else {
+
+    setEditingBlog(null);
+
+    setFormData(initialFormData);
+
+  }
+
+  setIsDialogOpen(true);
+
+};
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,16 +299,20 @@ const AdminBlogsPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Content * (HTML supported)</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Write your blog content here... HTML tags are supported."
-                  rows={10}
-                  required
-                />
-              </div>
+  <Label>Content *</Label>
+
+  <ReactQuill
+    theme="snow"
+    value={formData.content}
+    onChange={(value) =>
+      setFormData((prev) => ({
+        ...prev,
+        content: value,
+      }))
+    }
+  />
+
+</div>
 
               <div className="space-y-2">
                 <Label>Blog Images</Label>
