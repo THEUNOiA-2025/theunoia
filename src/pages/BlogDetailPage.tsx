@@ -180,39 +180,36 @@ const BlogDetailPage = () => {
     <>
 
       {/* SEO TAGS */}
+<Helmet>
 
-      <Helmet prioritizeSeoTags>
-
-        <title>{seoTitle}</title>
-
-
-        <meta
-          name="description"
-          content={seoDescription}
-        />
+<title>
+{blog.meta_title
+? blog.meta_title
+: `${blog.title} | THEUNOIA`}
+</title>
 
 
-        <meta property="og:title" content={seoTitle} />
+<meta
+name="description"
+content={
+blog.meta_description
+? blog.meta_description
+: blog.excerpt || ""
+}
+/>
 
 
-        <meta
-          property="og:description"
-          content={seoDescription}
-        />
+<link
+rel="canonical"
+href={
+blog.canonical_url
+? blog.canonical_url
+: `https://www.theunoia.com/blog/${blog.slug}`
+}
+/>
 
 
-        <meta
-          property="og:url"
-          content={seoCanonical}
-        />
-
-
-        <link
-          rel="canonical"
-          href={seoCanonical}
-        />
-
-      </Helmet>
+</Helmet>
 
 
 
@@ -352,16 +349,37 @@ const BlogDetailPage = () => {
 
 
             {/* CONTENT */}
+<div
+  className="
+    prose prose-lg max-w-none dark:prose-invert
 
-            <div
-              className="prose prose-lg max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{
-                __html: blog.content
-              }}
-            />
+    prose-h1:text-4xl prose-h1:font-bold prose-h1:mb-6
 
+    prose-h2:text-4xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4
 
-          </div>
+    prose-h3:text-2xl prose-h3:font-semibold prose-h3:mt-8 prose-h3:mb-3
+
+    prose-p:text-base prose-p:leading-relaxed prose-p:mb-4
+
+    prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-6
+    prose-ul:list-inside
+
+    prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-6
+    prose-ol:list-inside
+
+    prose-li:mb-2
+
+    prose-a:text-primary prose-a:font-medium hover:prose-a:underline
+
+    prose-strong:font-semibold
+
+    prose-img:rounded-xl prose-img:shadow-md prose-img:mx-auto
+  "
+  dangerouslySetInnerHTML={{
+    __html: blog.content
+  }}
+/>
+</div>
 
 
         </article>

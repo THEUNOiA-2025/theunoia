@@ -300,18 +300,31 @@ const AdminBlogsPage = () => {
 
               <div className="space-y-2">
   <Label>Content *</Label>
-
-  <ReactQuill
-    theme="snow"
-    value={formData.content}
-    onChange={(value) =>
-      setFormData((prev) => ({
-        ...prev,
-        content: value,
-      }))
-    }
-  />
-
+<ReactQuill
+  theme="snow"
+  value={formData.content}
+  onChange={(value) =>
+    setFormData(prev => ({ ...prev, content: value }))
+  }
+  modules={{
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"]
+    ]
+  }}
+  formats={[
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "list",
+    "bullet",
+    "link"
+  ]}
+/>
 </div>
 
               <div className="space-y-2">
