@@ -130,7 +130,7 @@ const StatsGrid = () => {
     <div className="sticky-root">
       <section className="landing-section" ref={sectionRef} id="section">
         <div className="landing-sticky" ref={stickyRef} id="sticky">
-          <div className={`landing-grid ${isRevealed ? 'reveal' : ''}`}>
+          <div className={`landing-grid ${isRevealed ? 'grid-revealed' : ''}`}>
             {statsData.map((stat, index) => (
               <div className="landing-cell" key={index}>
                 {stat.heading && (

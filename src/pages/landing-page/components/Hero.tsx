@@ -85,7 +85,15 @@ const Hero = () => {
           </div>
 
           <div className="demo-frame">
-            {/* Demo frame content can be added here */}
+            <video
+              className="demo-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+            >
+              <source src="/Video/herovid.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </section>
