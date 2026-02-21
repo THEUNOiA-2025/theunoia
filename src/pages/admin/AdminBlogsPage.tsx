@@ -48,6 +48,7 @@ import { Plus, Pencil, Trash2, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { BlogImageUploader } from '@/components/BlogImageUploader';
+import { cn } from '@/lib/utils';
 
 interface Blog {
   id: string;
@@ -65,7 +66,7 @@ interface Blog {
    meta_title: string | null;
   meta_description: string | null;
   canonical_url: string | null;
-
+  faqs: Array<{ question: string; answer: string }> | null;
 }
 
 interface BlogFormData {
@@ -79,6 +80,7 @@ interface BlogFormData {
   meta_description: string;
   canonical_url: string;
   status: string;
+  faqs: Array<{ question: string; answer: string }>;
 }
 const initialFormData: BlogFormData = {
   title: '',
@@ -91,8 +93,8 @@ const initialFormData: BlogFormData = {
   meta_title: '',
   meta_description: '',
   canonical_url: '',
-
   status: 'draft',
+  faqs: [],
 };
 
 
@@ -102,6 +104,8 @@ const AdminBlogsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
   const [formData, setFormData] = useState<BlogFormData>(initialFormData);
+  const [faqEnabled, setFaqEnabled] = useState(false);
+  const [currentFaqIndex, setCurrentFaqIndex] = useState(0);
 
   const { data: blogs, isLoading } = useQuery({
     queryKey: ['admin-blogs'],
@@ -190,22 +194,22 @@ const AdminBlogsPage = () => {
       content: blog.content || '',
       cover_image_url: blog.cover_image_url || '',
       blog_images: blog.blog_images || [],
-
       meta_title: blog.meta_title || '',
       meta_description: blog.meta_description || '',
       canonical_url: blog.canonical_url || '',
-
       status: blog.status || 'draft',
+      faqs: blog.faqs || [],
     });
+    setFaqEnabled(Array.isArray(blog.faqs) && blog.faqs.length > 0);
+    setCurrentFaqIndex(0);
 
   }
 
   else {
-
     setEditingBlog(null);
-
     setFormData(initialFormData);
-
+    setFaqEnabled(false);
+    setCurrentFaqIndex(0);
   }
 
   setIsDialogOpen(true);
@@ -221,10 +225,22 @@ const AdminBlogsPage = () => {
       return;
     }
 
+    const submitData: BlogFormData = {
+      ...formData,
+      faqs: faqEnabled
+        ? formData.faqs.filter(
+            (faq) =>
+              faq.question.trim() &&
+              faq.answer.trim() &&
+              faq.answer !== '<p><br></p>'
+          )
+        : [],
+    };
+
     if (editingBlog) {
-      updateBlogMutation.mutate({ id: editingBlog.id, data: formData });
+      updateBlogMutation.mutate({ id: editingBlog.id, data: submitData });
     } else {
-      createBlogMutation.mutate(formData);
+      createBlogMutation.mutate(submitData);
     }
   };
 
@@ -336,6 +352,156 @@ const AdminBlogsPage = () => {
                   onCoverChange={(url) => setFormData(prev => ({ ...prev, cover_image_url: url }))}
                 />
               </div>
+
+              {/* FAQ Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">FAQ</Label>
+                <div className="flex rounded-lg border border-border overflow-hidden w-fit">
+                  <button
+                    type="button"
+                    className={cn(
+                      "px-5 py-2 text-sm font-medium transition-colors",
+                      faqEnabled
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-muted"
+                    )}
+                    onClick={() => {
+                      setFaqEnabled(true);
+                      if (formData.faqs.length === 0) {
+                        setFormData(prev => ({
+                          ...prev,
+                          faqs: [{ question: '', answer: '' }],
+                        }));
+                      }
+                      setCurrentFaqIndex(0);
+                    }}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      "px-5 py-2 text-sm font-medium transition-colors",
+                      !faqEnabled
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-muted"
+                    )}
+                    onClick={() => {
+                      setFaqEnabled(false);
+                      setCurrentFaqIndex(0);
+                    }}
+                  >
+                    No
+                  </button>
+                </div>
+
+                {faqEnabled && (
+                  <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Question {currentFaqIndex + 1} of {Math.max(formData.faqs.length, 1)}
+                        <span className="text-xs ml-2">(Max 3)</span>
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        {formData.faqs.map((_, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setCurrentFaqIndex(i)}
+                            className={cn(
+                              "h-2.5 w-2.5 rounded-full transition-colors",
+                              i === currentFaqIndex ? "bg-primary" : "bg-border hover:bg-muted-foreground"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`faq-q-${currentFaqIndex}`}>
+                        Question {currentFaqIndex + 1}
+                      </Label>
+                      <Input
+                        id={`faq-q-${currentFaqIndex}`}
+                        value={formData.faqs[currentFaqIndex]?.question || ''}
+                        onChange={(e) => {
+                          const newFaqs = [...formData.faqs];
+                          if (!newFaqs[currentFaqIndex]) {
+                            newFaqs[currentFaqIndex] = { question: '', answer: '' };
+                          }
+                          newFaqs[currentFaqIndex] = {
+                            ...newFaqs[currentFaqIndex],
+                            question: e.target.value,
+                          };
+                          setFormData(prev => ({ ...prev, faqs: newFaqs }));
+                        }}
+                        placeholder="Enter your question"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Answer {currentFaqIndex + 1}</Label>
+                      <ReactQuill
+                        theme="snow"
+                        value={formData.faqs[currentFaqIndex]?.answer || ''}
+                        onChange={(value) => {
+                          const newFaqs = [...formData.faqs];
+                          if (!newFaqs[currentFaqIndex]) {
+                            newFaqs[currentFaqIndex] = { question: '', answer: '' };
+                          }
+                          newFaqs[currentFaqIndex] = {
+                            ...newFaqs[currentFaqIndex],
+                            answer: value,
+                          };
+                          setFormData(prev => ({ ...prev, faqs: newFaqs }));
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
+                      {currentFaqIndex > 0 ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentFaqIndex(prev => prev - 1)}
+                        >
+                          Previous
+                        </Button>
+                      ) : (
+                        <div />
+                      )}
+
+                      {currentFaqIndex < 2 ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const nextIndex = currentFaqIndex + 1;
+                            const newFaqs = [...formData.faqs];
+                            if (!newFaqs[nextIndex]) {
+                              newFaqs[nextIndex] = { question: '', answer: '' };
+                            }
+                            setFormData(prev => ({ ...prev, faqs: newFaqs }));
+                            setCurrentFaqIndex(nextIndex);
+                          }}
+                          disabled={
+                            !formData.faqs[currentFaqIndex]?.question?.trim() ||
+                            !formData.faqs[currentFaqIndex]?.answer?.trim() ||
+                            formData.faqs[currentFaqIndex]?.answer === '<p><br></p>'
+                          }
+                        >
+                          Next
+                        </Button>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Meta Title */}
 <div className="space-y-2">
   <Label htmlFor="meta_title">Meta Title</Label>
