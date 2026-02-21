@@ -15,7 +15,7 @@ import { RoleBasedRoute } from "./components/RoleBasedRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
-import FeaturesPage from "./pages/FeaturesPage";
+
 import HowItWorksPage from "./pages/HowItWorksPage";
 import FAQPage from "./pages/FAQPage";
 import ContactPage from "./pages/ContactPage";
@@ -52,6 +52,7 @@ const NewLandingPage = lazy(() => import("./pages/landing-page"));
 const NewFAQPage = lazy(() => import("./pages/landing-page/FAQPage"));
 const NewContactPage = lazy(() => import("./pages/landing-page/ContactPage"));
 const NewBlogPage = lazy(() => import("./pages/landing-page/BlogPage"));
+const NewFeaturesPage = lazy(() => import("./pages/landing-page/FeaturesPage"));
 
 // Client: view freelancer dashboard
 const FreelancerViewPage = lazy(() => import("./pages/client/freelancer/FreelancerViewPage"));
@@ -74,7 +75,11 @@ const App = () => (
                   <NewLandingPage />
                 </Suspense>
               } />
-              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/features" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <NewFeaturesPage />
+                </Suspense>
+              } />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/faq" element={
                 <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>

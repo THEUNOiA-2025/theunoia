@@ -115,9 +115,9 @@ const ContactPage = () => {
     const timer = setTimeout(() => {
       if (topMaskRef.current && bottomMaskRef.current) {
         topMaskRef.current.style.transition =
-          'transform 1000ms cubic-bezier(0.16, 1, 0.3, 1)';
+          'transform 8000ms cubic-bezier(0.16, 1, 0.3, 1)';
         bottomMaskRef.current.style.transition =
-          'transform 1000ms cubic-bezier(0.16, 1, 0.3, 1)';
+          'transform 8000ms cubic-bezier(0.16, 1, 0.3, 1)';
         topMaskRef.current.style.transform = 'translateY(-110%)';
         bottomMaskRef.current.style.transform = 'translateY(110%)';
       }
