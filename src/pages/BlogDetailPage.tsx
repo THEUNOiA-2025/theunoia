@@ -24,23 +24,19 @@ import { ImageGallery } from "@/components/ImageGallery";
 /* TYPE */
 
 interface Blog {
-
   id: string;
   title: string;
   slug: string;
   excerpt: string | null;
   content: string;
-
   cover_image_url: string | null;
   blog_images: string[] | null;
-
   meta_title: string | null;
   meta_description: string | null;
   canonical_url: string | null;
-
   published_at: string | null;
   created_at: string;
-
+  faqs: Array<{ question: string; answer: string }> | null;
 }
 
 
@@ -341,33 +337,56 @@ export default function BlogDetailPage() {
           {/* CONTENT — FINAL FIX */}
 
           <div
-
             className="
-
               prose
-
               prose-lg
-
               max-w-none
-
               prose-ul:list-disc
               prose-ul:pl-6
-
               prose-ol:list-decimal
               prose-ol:pl-6
-
               prose-li:mb-2
-
             "
-
             dangerouslySetInnerHTML={{
-
               __html: blog.content
-
             }}
-
           />
 
+          {/* FAQ SECTION */}
+          {blog.faqs && blog.faqs.length > 0 && (
+            <section className="mt-16 border-t border-border pt-10">
+              <h2 className="text-3xl font-bold mb-8">
+                Frequently Asked Questions
+              </h2>
+              <div className="space-y-6">
+                {blog.faqs.map((faq, index) => (
+                  <details
+                    key={index}
+                    className="group rounded-xl border border-border bg-card overflow-hidden"
+                    open={index === 0}
+                  >
+                    <summary className="flex cursor-pointer items-center justify-between gap-4 p-5 font-semibold text-lg hover:bg-muted/50 transition-colors list-none [&::-webkit-details-marker]:hidden">
+                      <span>{faq.question}</span>
+                      <svg
+                        className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </summary>
+                    <div
+                      className="px-5 pb-5 prose prose-sm max-w-none text-muted-foreground"
+                      dangerouslySetInnerHTML={{ __html: faq.answer }}
+                    />
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
 
         </div>
 

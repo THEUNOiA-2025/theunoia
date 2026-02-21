@@ -674,9 +674,16 @@ const AdminBlogsPage = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={blog.status === 'published' ? 'default' : 'secondary'}>
-                        {blog.status}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant={blog.status === 'published' ? 'default' : 'secondary'}>
+                          {blog.status}
+                        </Badge>
+                        {blog.faqs && blog.faqs.length > 0 && (
+                          <Badge variant="outline" className="text-xs border-primary/40 text-primary">
+                            FAQ ({blog.faqs.length})
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {format(new Date(blog.created_at), 'MMM d, yyyy')}
