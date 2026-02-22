@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Preloader from "@/components/Preloader";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -304,15 +305,7 @@ const ProjectDetailPage = () => {
   };
 
   if (loading) {
-    return (
-      <main className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-11 py-10">
-          <div className="text-center py-10">
-            <p className="text-slate-500 text-sm">Loading project details...</p>
-          </div>
-        </div>
-      </main>
-    );
+    return  <Preloader />;
   }
 
   if (!project) {

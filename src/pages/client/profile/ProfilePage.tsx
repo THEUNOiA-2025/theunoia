@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import Preloader from "@/components/Preloader";
 import {
   Star,
   ClipboardList,
@@ -117,25 +118,7 @@ const ProfilePage = () => {
     : "";
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#faf7f1] p-5">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex gap-5">
-            <Skeleton className="w-[76px] h-[76px] rounded-2xl" />
-            <div className="space-y-3 flex-1">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-5 w-48" />
-              <Skeleton className="h-4 w-96" />
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-20 rounded-2xl" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return  <Preloader />;
   }
 
   const fullName = profile

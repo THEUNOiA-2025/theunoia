@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Preloader from "@/components/Preloader";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -954,11 +955,7 @@ const ProjectsPage = () => {
   );
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
-        <p className="text-muted-foreground font-medium">Loading projects...</p>
-      </div>
-    );
+    return <Preloader />;
   }
 
   return (

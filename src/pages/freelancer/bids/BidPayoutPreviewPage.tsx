@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PayoutBreakdownCard } from '@/components/financial/PayoutBreakdownCard';
+import Preloader from "@/components/Preloader";
 import { 
   calculateFreelancerPayout, 
   formatINR,
@@ -246,11 +247,7 @@ const BidPayoutPreviewPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-white">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-purple border-t-transparent" />
-      </div>
-    );
+    return  <Preloader />;
   }
 
   if (!project || !payoutBreakdown) {

@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import Preloader from "@/components/Preloader";
 
 // Lazy load both versions
 const FreelancerProjectDetailPage = lazy(() => import("@/pages/freelancer/projects/ProjectDetailPage"));
@@ -46,11 +47,7 @@ const ProjectDetailWrapper = () => {
   }, [id, user?.id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <Preloader />;
   }
 
   return (

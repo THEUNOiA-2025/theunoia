@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserTable } from '@/components/admin/UserTable';
 import { Input } from '@/components/ui/input';
+import Preloader from "@/components/Preloader";
+
 import { 
   Select,
   SelectContent,
@@ -119,11 +121,7 @@ const AdminUsersPage = () => {
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return  <Preloader />;
   }
 
   return (

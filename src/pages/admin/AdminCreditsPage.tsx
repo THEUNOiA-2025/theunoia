@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Preloader from "@/components/Preloader";
 import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
@@ -199,11 +200,7 @@ export default function AdminCreditsPage() {
   const totalCredits = credits.reduce((sum, c) => sum + c.balance, 0);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Loading credits...</p>
-      </div>
-    );
+    return  <Preloader />;
   }
 
   return (

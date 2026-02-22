@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, GraduationCap, Calendar, IndianRupee, MapPin, Mail, Briefcase, Clock, ImageIcon, Sparkles, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import Preloader from "@/components/Preloader";
 
 interface College {
   id: string;
@@ -120,17 +121,7 @@ export default function CommunityPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent-purple/5">
-        <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto mb-4"></div>
-            <GraduationCap className="absolute inset-0 m-auto w-6 h-6 text-primary" />
-          </div>
-          <p className="text-muted-foreground font-medium">Loading your community...</p>
-        </div>
-      </div>
-    );
+    return  <Preloader />;
   }
 
   if (!isVerified || !userCollege) {

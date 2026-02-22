@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import Preloader from "@/components/Preloader";
 import {
   Table,
   TableBody,
@@ -128,11 +129,7 @@ const AdminProjectsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return  <Preloader />;
   }
 
   return (

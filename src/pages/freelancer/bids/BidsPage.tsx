@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Calendar, FileText, CheckCircle2, XCircle, Clock, Coins, Gift, ArrowUpRight, ArrowDownRight, Verified, Ban, List, Grid3x3, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
+import Preloader from "@/components/Preloader";
 
 // Helper function to format date with ordinal (e.g., "October 24th", "November 5th")
 const formatDateWithOrdinal = (date: Date): string => {
@@ -264,13 +265,7 @@ export default function BidsPage() {
   };
 
   if (loading) {
-    return (
-      <main className="flex-1 p-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground">Loading bids...</p>
-        </div>
-      </main>
-    );
+    return  <Preloader />;
   }
 
   return (

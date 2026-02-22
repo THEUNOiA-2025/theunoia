@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { VerificationTable } from '@/components/admin/VerificationTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import Preloader from "@/components/Preloader";
 import { Search, Loader2 } from 'lucide-react';
 
 interface Verification {
@@ -96,11 +97,7 @@ const AdminVerificationsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return  <Preloader />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
+import Preloader from "@/components/Preloader";
 import { 
   ArrowLeft, Clock, MapPin, IndianRupee, 
   FileText, CheckCircle2, MapPin as LocationIcon, Calendar,
@@ -245,15 +246,7 @@ const ClientProjectDetailPage = () => {
   })();
 
   if (loading) {
-    return (
-      <main className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-11 py-10">
-          <div className="text-center py-10">
-            <p className="text-slate-500 text-sm">Loading project details...</p>
-          </div>
-        </div>
-      </main>
-    );
+    return  <Preloader />;
   }
 
   if (!project) {

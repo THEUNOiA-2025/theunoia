@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminStatsCard } from '@/components/admin/AdminStatsCard';
 import { Button } from '@/components/ui/button';
+import Preloader from "@/components/Preloader";
 import { 
   Users, 
   ShieldCheck, 
@@ -83,11 +84,7 @@ const AdminDashboard = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return  <Preloader />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, RotateCw, Hourglass, User } from "lucide-react";
+import Preloader from "@/components/Preloader";
 
 interface FreelancerProfile {
   user_id: string;
@@ -124,11 +125,7 @@ const FreelancerViewPage = () => {
   }, [userId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FDF8F3] flex items-center justify-center p-6">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return  <Preloader />;
   }
 
   if (notFound || !profile) {

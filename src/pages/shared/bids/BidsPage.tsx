@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import Preloader from "@/components/Preloader";
 import { Calendar, IndianRupee, FileText, CheckCircle2, XCircle, Clock, Coins, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
 interface Bid {
   id: string;
-  project_id: string;
+  project_id: string;ss
   freelancer_id: string;
   amount: number;
   proposal: string;
@@ -179,13 +180,7 @@ export default function BidsPage() {
   };
 
   if (loading) {
-    return (
-      <main className="flex-1 p-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground">Loading bids...</p>
-        </div>
-      </main>
-    );
+    return <Preloader />;
   }
 
   return (
