@@ -21,32 +21,38 @@ import { toast } from "sonner";
 import { ImageGallery } from "@/components/ImageGallery";
 
 
-/* TYPE */
-
 interface Blog {
+
   id: string;
   title: string;
   slug: string;
   excerpt: string | null;
   content: string;
+
   cover_image_url: string | null;
   blog_images: string[] | null;
+
   meta_title: string | null;
   meta_description: string | null;
   canonical_url: string | null;
+
   published_at: string | null;
   created_at: string;
-  faqs: Array<{ question: string; answer: string }> | null;
+
+  faqs: Array<{
+    question: string;
+    answer: string;
+  }> | null;
+
 }
 
 
 
 export default function BlogDetailPage() {
 
+
   const { slug } = useParams<{ slug: string }>();
 
-
-  /* FETCH BLOG */
 
   const {
 
@@ -82,23 +88,15 @@ export default function BlogDetailPage() {
 
 
 
-  /* SHARE */
-
   const handleShare = async () => {
 
-    await navigator.clipboard.writeText(
-
-      window.location.href
-
-    );
+    await navigator.clipboard.writeText(window.location.href);
 
     toast.success("Link copied");
 
   };
 
 
-
-  /* LOADING */
 
   if (isLoading)
 
@@ -117,8 +115,6 @@ export default function BlogDetailPage() {
     );
 
 
-
-  /* ERROR */
 
   if (!blog || error)
 
@@ -142,8 +138,6 @@ export default function BlogDetailPage() {
 
 
 
-  /* SEO */
-
   const seoTitle =
     blog.meta_title ||
     `${blog.title} | THEUNOIA`;
@@ -161,38 +155,22 @@ export default function BlogDetailPage() {
 
 
 
-  /* UI */
-
   return (
 
     <>
 
-      {/* SEO */}
-
       <Helmet>
 
-        <title>
-
-          {seoTitle}
-
-        </title>
-
+        <title>{seoTitle}</title>
 
         <meta
-
           name="description"
-
           content={seoDescription}
-
         />
 
-
         <link
-
           rel="canonical"
-
-          href={`https://www.theunoia.com/blog/${blog.slug}`}
-
+          href={seoCanonical}
         />
 
       </Helmet>
@@ -205,15 +183,15 @@ export default function BlogDetailPage() {
 
       <article className="pt-32 pb-16 px-4">
 
-
         <div className="max-w-4xl mx-auto">
+
 
 
           {/* BACK */}
 
           <Link to="/blog">
 
-            <Button variant="ghost">
+            <Button>
 
               <ArrowLeft className="mr-2 h-4 w-4"/>
 
@@ -235,10 +213,9 @@ export default function BlogDetailPage() {
 
 
 
-          {/* META INFO */}
+          {/* META */}
 
           <div className="flex gap-6 text-muted-foreground mb-8">
-
 
             <span className="flex items-center gap-2">
 
@@ -269,10 +246,7 @@ export default function BlogDetailPage() {
             </span>
 
 
-            <Button
-              variant="ghost"
-              onClick={handleShare}
-            >
+            <Button onClick={handleShare}>
 
               <Share2 className="h-4 w-4 mr-2"/>
 
@@ -280,12 +254,11 @@ export default function BlogDetailPage() {
 
             </Button>
 
-
           </div>
 
 
 
-          {/* COVER IMAGE */}
+          {/* COVER */}
 
           {blog.cover_image_url && (
 
@@ -334,59 +307,77 @@ export default function BlogDetailPage() {
 
 
 
-          {/* CONTENT — FINAL FIX */}
+          {/* ✅ FINAL CONTENT FIX */}
 
           <div
+
             className="
+
               prose
               prose-lg
               max-w-none
-              prose-ul:list-disc
-              prose-ul:pl-6
-              prose-ol:list-decimal
-              prose-ol:pl-6
-              prose-li:mb-2
+
+              [&_ol]:list-decimal
+              [&_ol]:pl-6
+
+              [&_ul]:list-disc
+              [&_ul]:pl-6
+
+              [&_li]:mb-2
+
             "
+
             dangerouslySetInnerHTML={{
               __html: blog.content
             }}
+
           />
 
-          {/* FAQ SECTION */}
+
+
+          {/* FAQ */}
+
           {blog.faqs && blog.faqs.length > 0 && (
-            <section className="mt-16 border-t border-border pt-10">
+
+            <section className="mt-16 border-t pt-10">
+
               <h2 className="text-3xl font-bold mb-8">
+
                 Frequently Asked Questions
+
               </h2>
-              <div className="space-y-6">
-                {blog.faqs.map((faq, index) => (
-                  <details
-                    key={index}
-                    className="group rounded-xl border border-border bg-card overflow-hidden"
-                    open={index === 0}
-                  >
-                    <summary className="flex cursor-pointer items-center justify-between gap-4 p-5 font-semibold text-lg hover:bg-muted/50 transition-colors list-none [&::-webkit-details-marker]:hidden">
-                      <span>{faq.question}</span>
-                      <svg
-                        className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="2"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </summary>
-                    <div
-                      className="px-5 pb-5 prose prose-sm max-w-none text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: faq.answer }}
-                    />
-                  </details>
-                ))}
-              </div>
+
+
+              {blog.faqs.map((faq, index) => (
+
+                <details key={index} className="mb-4">
+
+                  <summary className="font-semibold cursor-pointer">
+
+                    {faq.question}
+
+                  </summary>
+
+
+                  <div
+
+                    className="prose mt-2"
+
+                    dangerouslySetInnerHTML={{
+                      __html: faq.answer
+                    }}
+
+                  />
+
+                </details>
+
+              ))}
+
             </section>
+
           )}
+
+
 
         </div>
 
