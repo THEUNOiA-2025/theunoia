@@ -15,9 +15,12 @@ const Canonical: React.FC = () => {
       document.head.appendChild(link);
     }
 
+    // Remove query params & hash
+    const cleanPath = location.pathname.replace(/\/$/, "") + "/";
+
     link.setAttribute(
       "href",
-      window.location.origin + location.pathname
+      window.location.origin + cleanPath
     );
   }, [location]);
 
