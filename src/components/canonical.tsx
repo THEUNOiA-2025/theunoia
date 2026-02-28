@@ -1,11 +1,13 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
-const Canonical = () => {
+const Canonical: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    let link = document.querySelector("link[rel='canonical']");
+    let link: HTMLLinkElement | null = document.querySelector(
+      "link[rel='canonical']"
+    );
 
     if (!link) {
       link = document.createElement("link");
